@@ -1,0 +1,10 @@
+node_modules/
+bower_components/
+statics/libs/
+statics/images/
+!statics/images/favicon.ico
+.settings/
+.idea/
+.DS_Store
+npm-debug.log
+!.gitignore
