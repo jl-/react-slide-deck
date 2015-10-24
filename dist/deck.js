@@ -7,7 +7,7 @@
 		exports["ReactDeck"] = factory(require("react"), require("react-dom"));
 	else
 		root["ReactDeck"] = factory(root["React"], root["ReactDom"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_4__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -55,7 +55,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * <Deck vertical loop scroll dura=1400 current=2>
+	 * <Deck vertical|horizontal loop swipe dura=1400 factor=0.4 current=2>
 	 *  <Deck.Slide>
 	 *  </Deck.Slide>
 	 *
@@ -90,11 +90,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _classnames = __webpack_require__(2);
+	var _reactDom = __webpack_require__(2);
+	
+	var _reactDom2 = _interopRequireDefault(_reactDom);
+	
+	var _classnames = __webpack_require__(3);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
-	var _slide = __webpack_require__(3);
+	var _slide = __webpack_require__(4);
 	
 	var _slide2 = _interopRequireDefault(_slide);
 	
@@ -102,7 +106,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _styleScss2 = _interopRequireDefault(_styleScss);
 	
-	var DURA = 1400; // default transition duration
+	var SWIPE_DURA = 1400; // default transition duration
+	var SWIPE_ONSET = 20;
+	var SWIPE_FACTOR = 0.4;
+	
+	var DECK_STATUS = {
+	  SWIPE_STARTED: 1,
+	  SWIPING: 2,
+	  SWIPE_FORWARDING: 3,
+	  SWIPE_CONFIRMED: 4,
+	  SWIPE_CANCELED: 5,
+	  NORMAL: 6
+	};
 	
 	var Deck = (function (_Component) {
 	  _inherits(Deck, _Component);
@@ -111,101 +126,232 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _classCallCheck(this, Deck);
 	
 	    _get(Object.getPrototypeOf(Deck.prototype), 'constructor', this).call(this, props, context);
-	    this.state = {
-	      slides: null,
-	      current: props.current
-	    };
+	    var current = props.current;
+	
+	    this.currIndex = 0;
+	    this.state = { current: current, prev: current + 1 };
 	  }
 	
 	  _createClass(Deck, [{
-	    key: 'handleWheel',
-	    value: function handleWheel(e) {
-	      var _this = this;
-	
-	      if (this.state.transitioning) return;
-	      var current = this.state.current + (e.deltaY < 0 ? 1 : e.deltaY > 0 ? -1 : 0);
-	      if (current === this.state.current || !this.props.loop && !(current >= 0 && current < _react.Children.count(this.props.children))) return;
-	
-	      this.setState({ transitioning: true });
-	      setTimeout(function () {
-	        return _this.setState({ transitioning: false });
-	      }, this.props.dura || DURA);
-	      this.makeSlides(_extends({}, this.props, { current: current }));
-	    }
-	  }, {
-	    key: 'makeSlides',
-	    value: function makeSlides(nextProps) {
-	      var children = nextProps.children;
-	      var loop = nextProps.loop;
-	      var current = nextProps.current;var slidesProps = [];
-	      var slidesCount = _react.Children.count(children),
-	          lastIndex = slidesCount - 1;
-	      var prev = this.state.current;
-	      current = (slidesCount + current) % slidesCount;
-	      for (var index = 0; index < slidesCount; index++) {
-	        slidesProps[index] = _defineProperty({}, index < current ? 'before' : index === current ? 'current' : 'after', true);
-	      }
-	      if (loop) {
-	        if (current === lastIndex) {
-	          slidesProps[0] = { after: true };
-	        } else if (current === 0) {
-	          slidesProps[lastIndex] = { before: true };
-	        }
-	
-	        if (prev === lastIndex && current === 0) {
-	          slidesProps[0].reset = 'after';
-	        } else if (prev === 0 && current === lastIndex) {
-	          slidesProps[lastIndex].reset = 'before';
-	        }
-	      } else {
-	        if (prev === lastIndex && current === 0) {
-	          slidesProps[0].reset = 'before';
-	        } else if (prev === 0 && current === lastIndex) {
-	          slidesProps[lastIndex].reset = 'after';
-	        }
-	      }
-	      var slides = _react.Children.map(children, function (slide, index) {
-	        return _react2['default'].cloneElement(slide, slidesProps[index]);
-	      });
-	
-	      this.setState({
-	        slides: slides,
-	        current: current
-	      });
-	    }
-	  }, {
 	    key: 'componentWillMount',
-	    value: function componentWillMount() {
-	      this.makeSlides(_extends({}, this.props, { loop: false }));
+	    value: function componentWillMount() {}
+	  }, {
+	    key: 'shouldComponentUpdate',
+	    value: function shouldComponentUpdate(nextProps, nextState) {
+	      if (this.status === DECK_STATUS.SWIPE_STARTED) return false;
+	      return true;
 	    }
 	  }, {
 	    key: 'componentWillReceiveProps',
 	    value: function componentWillReceiveProps(nextProps) {
-	      this.makeSlides(_extends({}, nextProps, { loop: false }));
+	      var current = nextProps.current,
+	          prev = this.state.current;
+	      this.status = DECK_STATUS.NORMAL;
+	      this.setState({ current: current, prev: prev });
+	    }
+	  }, {
+	    key: 'normalizeIndex',
+	    value: function normalizeIndex(index) {
+	      var slidesCount = _react.Children.count(this.props.children);
+	      return (index + slidesCount) % slidesCount;
+	    }
+	  }, {
+	    key: 'handleWheel',
+	    value: function handleWheel(e) {
+	      var _this = this;
+	
+	      var prev = this.state.current,
+	          current = prev + (e.deltaY < 0 ? 1 : e.deltaY > 0 ? -1 : 0);
+	      var slidesCount = _react.Children.count(this.props.children);
+	      current = this.props.loop ? (current + slidesCount) % slidesCount : current;
+	
+	      if (this.status !== DECK_STATUS.SWIPE_FORWARDING && current !== prev && current >= 0 && current < slidesCount) {
+	        this.setState({ current: current, prev: prev });
+	        this.status = DECK_STATUS.SWIPE_FORWARDING;
+	        setTimeout(function () {
+	          return _this.status = DECK_STATUS.NORMAL;
+	        }, this.props.dura || SWIPE_DURA);
+	      }
+	    }
+	  }, {
+	    key: 'handleTouchStart',
+	    value: function handleTouchStart(e) {
+	      var touch = e.changedTouches[0];
+	      var dom = _reactDom2['default'].findDOMNode(this);
+	      this.setState({
+	        x: this.props.horizontal ? touch.clientX : 0,
+	        y: this.props.vertical ? touch.clientY : 0,
+	        width: dom.offsetWidth,
+	        height: dom.offsetHeight
+	      });
+	      this.status = DECK_STATUS.SWIPE_STARTED;
+	    }
+	  }, {
+	    key: 'handleTouchMove',
+	    value: function handleTouchMove(e) {
+	      var touch = e.changedTouches[0];
+	      var _state = this.state;
+	      var prev = _state.prev;
+	      var current = _state.current;
+	      var x = _state.x;
+	      var y = _state.y;
+	
+	      var dx = this.props.horizontal ? touch.clientX - x : 0,
+	          dy = this.props.vertical ? touch.clientY - y : 0;
+	      var slidesCount = _react.Children.count(this.props.children),
+	          distance = dx + dy;
+	      prev = current + (distance > 0 ? -1 : distance < 0 ? 1 : 0);
+	      prev = this.props.loop ? (prev + slidesCount) % slidesCount : prev;
+	      if (Math.abs(distance) > SWIPE_ONSET && prev !== current && prev >= 0 && prev < slidesCount) {
+	        this.status = DECK_STATUS.SWIPING;
+	        this.setState({ dx: dx, dy: dy, prev: prev });
+	      }
+	    }
+	  }, {
+	    key: 'handleTouchEnd',
+	    value: function handleTouchEnd(e) {
+	      if (this.status !== DECK_STATUS.SWIPING) {
+	        this.status = DECK_STATUS.NORMAL;
+	        return;
+	      }
+	      var touch = e.changedTouches[0],
+	          factor = this.props.factor || SWIPE_FACTOR;
+	      var _state2 = this.state;
+	      var prev = _state2.prev;
+	      var current = _state2.current;
+	      var x = _state2.x;
+	      var y = _state2.y;
+	      var width = _state2.width;
+	      var height = _state2.height;
+	
+	      var shouldForward = this.props.horizontal ? Math.abs(touch.clientX - x) / width > factor : Math.abs(touch.clientY - y) / height > factor;
+	      if (shouldForward) {
+	        ;
+	        var _ref = [current, prev];
+	        prev = _ref[0];
+	        current = _ref[1];
+	      }this.setState({ prev: prev, current: current });
+	      this.status = shouldForward ? DECK_STATUS.SWIPE_CONFIRMED : DECK_STATUS.SWIPE_CANCELED;
+	    }
+	  }, {
+	    key: 'handleTouchCancel',
+	    value: function handleTouchCancel(e) {
+	      this.status = DECK_STATUS.SWIPE_CANCELED;
+	    }
+	  }, {
+	    key: 'setSlideStyle',
+	    value: function setSlideStyle(isPrev) {
+	      var _state3 = this.state;
+	      var width = _state3.width;
+	      var height = _state3.height;
+	      var dx = _state3.dx;
+	      var dy = _state3.dy;
+	
+	      var style = {};
+	      if (isPrev) {
+	        if (this.props.horizontal) {
+	          dx = (dx > 0 ? -width : width) + dx;
+	        } else if (this.props.vertical) {
+	          dy = (dy > 0 ? -height : height) + dy;
+	        }
+	      }
+	      style.WebkitTransform = style.transform = 'translate3d(' + dx + 'px, ' + dy + 'px, 0)';
+	      return style;
+	    }
+	  }, {
+	    key: 'updateSlides',
+	    value: function updateSlides() {
+	      var _props = this.props;
+	      var children = _props.children;
+	      var horizontal = _props.horizontal;
+	      var vertical = _props.vertical;
+	      var loop = _props.loop;
+	      var _state4 = this.state;
+	      var prev = _state4.prev;
+	      var current = _state4.current;
+	      var dx = _state4.dx;
+	      var dy = _state4.dy;
+	
+	      var slidesCount = _react.Children.count(children),
+	          lastIndex = slidesCount - 1;
+	      var slides = [];var prevSlideProps = { style: {} };
+	      var currentSlideProps = { style: {} };
+	
+	      var isSameSlideIndex = prev === current;
+	      var swiping = this.status === DECK_STATUS.SWIPING,
+	          swipeForwarding = this.status === DECK_STATUS.SWIPE_FORWARDING,
+	          swipeConfirmed = this.status === DECK_STATUS.SWIPE_CONFIRMED,
+	          swipeCanceled = this.status === DECK_STATUS.SWIPE_CANCELED;
+	      /*
+	      swiping && console.log('swiping');
+	      swipeForwarding && console.log('swipeForwarding');
+	      swipeConfirmed && console.log('swipeConfrimed');
+	      swipeCanceled && console.log('swipeCanceled');
+	      console.log('prev current: ', prev, current);
+	      */
+	
+	      loop = loop && (swiping || swipeForwarding || swipeConfirmed || swipeCanceled);
+	      if (isSameSlideIndex) prev = this.normalizeIndex(current + 1);
+	
+	      if (swiping) {
+	        prevSlideProps.style = this.setSlideStyle(true);
+	        currentSlideProps.style = this.setSlideStyle(false);
+	      } else {
+	        currentSlideProps.current = prevSlideProps.prev = true;
+	        currentSlideProps.reset = current > prev ? 'after' : 'before';
+	        if (loop) {
+	          if (prev === 0 && current === lastIndex) {
+	            currentSlideProps.reset = 'before';
+	          } else if (prev === lastIndex && current === 0) {
+	            currentSlideProps.reset = 'after';
+	          }
+	        }
+	        prevSlideProps[currentSlideProps.reset === 'before' ? 'after' : 'before'] = true;
+	        if (isSameSlideIndex) {
+	          currentSlideProps.reset = prevSlideProps.prev = false;
+	        }
+	        if (swipeConfirmed || swipeCanceled) {
+	          this.status = DECK_STATUS.NORMAL;
+	          currentSlideProps.reset = false;
+	        }
+	      }
+	
+	      this.currIndex = swiping || swipeCanceled ? this.currIndex : +(isSameSlideIndex && this.currIndex === 1 || !isSameSlideIndex && this.currIndex === 0);
+	
+	      prevSlideProps.key = +!this.currIndex;
+	      currentSlideProps.key = this.currIndex;
+	      slides[+!this.currIndex] = _react2['default'].cloneElement(children[prev], prevSlideProps);
+	      slides[this.currIndex] = _react2['default'].cloneElement(children[current], currentSlideProps);
+	
+	      return slides;
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
 	      var _cns;
 	
-	      var _props = this.props;
-	      var children = _props.children;
-	      var current = _props.current;
-	      var vertical = _props.vertical;
-	      var horizontal = _props.horizontal;
-	      var loop = _props.loop;
-	      var scroll = _props.scroll;
-	      var className = _props.className;
+	      var _props2 = this.props;
+	      var children = _props2.children;
+	      var current = _props2.current;
+	      var vertical = _props2.vertical;
+	      var horizontal = _props2.horizontal;
+	      var loop = _props2.loop;
+	      var swipe = _props2.swipe;
+	      var className = _props2.className;
 	
-	      var rest = _objectWithoutProperties(_props, ['children', 'current', 'vertical', 'horizontal', 'loop', 'scroll', 'className']);
+	      var rest = _objectWithoutProperties(_props2, ['children', 'current', 'vertical', 'horizontal', 'loop', 'swipe', 'className']);
 	
-	      if (scroll) rest.onWheel = this.handleWheel.bind(this);
-	
+	      if (swipe) {
+	        rest.onWheel = this.handleWheel.bind(this);
+	        rest.onTouchStart = this.handleTouchStart.bind(this);
+	        rest.onTouchMove = this.handleTouchMove.bind(this);
+	        rest.onTouchEnd = this.handleTouchEnd.bind(this);
+	      }
 	      className = (0, _classnames2['default'])((_cns = {}, _defineProperty(_cns, className, !!className), _defineProperty(_cns, 'deck--horizontal', horizontal), _defineProperty(_cns, 'deck--vertical', vertical), _cns), 'deck');
 	      return _react2['default'].createElement(
 	        'div',
 	        _extends({ className: className }, rest),
-	        this.state.slides
+	        this.updateSlides()
 	      );
 	    }
 	  }]);
@@ -225,6 +371,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 2 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
+
+/***/ },
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -279,7 +431,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	})();
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -298,8 +450,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 	
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
@@ -308,11 +458,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _reactDom = __webpack_require__(4);
+	var _reactDom = __webpack_require__(2);
 	
 	var _reactDom2 = _interopRequireDefault(_reactDom);
 	
-	var _classnames = __webpack_require__(2);
+	var _classnames = __webpack_require__(3);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
@@ -328,29 +478,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _createClass(Slide, [{
 	    key: 'componentWillReceiveProps',
 	    value: function componentWillReceiveProps(nextProps) {
-	      this.isPrev = this.props.current;
-	      var reset = nextProps.reset;
-	      if (reset) {
-	        var slide = _reactDom2['default'].findDOMNode(this);
-	        slide.className = 'slide slide--' + reset;
-	        slide.offsetWidth;
-	      }
+	      this.reset(nextProps.reset);
+	    }
+	  }, {
+	    key: 'reset',
+	    value: function reset(status) {
+	      if (!status) return;
+	      var slide = _reactDom2['default'].findDOMNode(this);
+	      slide.className = 'slide slide--' + status;
+	      slide.offsetWidth;
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var _cns;
-	
 	      var _props = this.props;
 	      var children = _props.children;
 	      var current = _props.current;
 	      var before = _props.before;
+	      var prev = _props.prev;
 	      var after = _props.after;
+	      var reset = _props.reset;
 	      var className = _props.className;
+	      var touching = _props.touching;
 	
-	      var rest = _objectWithoutProperties(_props, ['children', 'current', 'before', 'after', 'className']);
+	      var rest = _objectWithoutProperties(_props, ['children', 'current', 'before', 'prev', 'after', 'reset', 'className', 'touching']);
 	
-	      className = (0, _classnames2['default'])((_cns = {}, _defineProperty(_cns, className, !!className), _defineProperty(_cns, 'slide--current', current), _defineProperty(_cns, 'slide--before', before), _defineProperty(_cns, 'slide--after', after), _defineProperty(_cns, 'slide--prev', this.isPrev), _cns), 'slide');
+	      className = (0, _classnames2['default'])({
+	        'slide--current': current,
+	        'slide--before': before,
+	        'slide--after': after,
+	        'slide--prev': prev
+	      }, className, 'slide');
 	      return _react2['default'].createElement(
 	        'div',
 	        _extends({ className: className }, rest),
@@ -364,12 +522,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	exports['default'] = Slide;
 	module.exports = exports['default'];
-
-/***/ },
-/* 4 */
-/***/ function(module, exports) {
-
-	module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
 
 /***/ },
 /* 5 */
@@ -406,7 +558,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	// module
-	exports.push([module.id, ".deck {\n  position: relative;\n  width: 100%;\n  height: 100%;\n  overflow: hidden; }\n\n.deck .slide {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%; }\n\n.deck .slide--current,\n.deck .slide--prev {\n  -webkit-transition: -webkit-transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1);\n          transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1); }\n\n.deck .slide--current {\n  -webkit-transform: translate3d(0, 0, 0);\n          transform: translate3d(0, 0, 0); }\n\n.deck--horizontal .slide--before {\n  -webkit-transform: translate3d(-100%, 0, 0);\n          transform: translate3d(-100%, 0, 0); }\n\n.deck--horizontal .slide--after {\n  -webkit-transform: translate3d(100%, 0, 0);\n          transform: translate3d(100%, 0, 0); }\n\n.deck--vertical .slide--before {\n  -webkit-transform: translate3d(0, -100%, 0);\n          transform: translate3d(0, -100%, 0); }\n\n.deck--vertical .slide--after {\n  -webkit-transform: translate3d(0, 100%, 0);\n          transform: translate3d(0, 100%, 0); }\n", ""]);
+	exports.push([module.id, ".deck {\n  position: relative;\n  width: 100%;\n  height: 100%;\n  overflow: hidden; }\n\n.deck .slide {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  -webkit-backface-visibility: hidden;\n          backface-visibility: hidden; }\n\n.deck .slide--current,\n.deck .slide--prev {\n  -webkit-transition: -webkit-transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1);\n          transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1); }\n\n.deck .slide--current {\n  -webkit-transform: translate3d(0, 0, 0);\n          transform: translate3d(0, 0, 0); }\n\n.deck--horizontal .slide--before {\n  -webkit-transform: translate3d(-100%, 0, 0);\n          transform: translate3d(-100%, 0, 0); }\n\n.deck--horizontal .slide--after {\n  -webkit-transform: translate3d(100%, 0, 0);\n          transform: translate3d(100%, 0, 0); }\n\n.deck--vertical .slide--before {\n  -webkit-transform: translate3d(0, -100%, 0);\n          transform: translate3d(0, -100%, 0); }\n\n.deck--vertical .slide--after {\n  -webkit-transform: translate3d(0, 100%, 0);\n          transform: translate3d(0, 100%, 0); }\n", ""]);
 	
 	// exports
 

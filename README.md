@@ -1,8 +1,15 @@
+> A simple react component for swipe, tabs, carousel, one page scroll ...,
+with animation hooks. works on PC and touch devices
+
+---
+
+
 ## `npm i react-slide-deck --save`
 
 ---
 
-## [Demo](http://output.jsbin.com/dogofa)
+# [Demo](http://output.jsbin.com/hexada)
+also open on touch device, see the swipe effect
 
 --
 
@@ -17,8 +24,10 @@ class Demo extends Component {
     this.state = {
       current: 0,
       horizontal: true,
-      scroll: true,
-      loop: true
+      swipe: true,
+      loop: true,
+      factor: 0.4,
+      dura: 1400
     };
   }
   change(event) {
@@ -60,7 +69,9 @@ class Demo extends Component {
 ```js
 <Deck
   horizontal|vertical // direction for the slides
-  scroll // can scroll(mousewheel) or not
+  swipe // can scroll(mousewheel) or not; on touch devices, it is touch event
+  factor // swipe distance used to determine whether to swipe forward or abort.
+         // if (swipeDistance / width(or height for vertical)) > factor, then will switch to next slide, otherwise return to the current slide.
   loop //  scroll down on the last Deck.Slide => transition to the first Deck.Slide. only work when `scroll` is set
   dura // duration for slide transition, optional. default is 1400ms
   >
@@ -70,7 +81,7 @@ class Demo extends Component {
 ```
 
 ---
-
+#### animation hooks
 `Deck.Slide`
 - `.slide--current` // current slide
 - `.slide--before` // slides before current slide

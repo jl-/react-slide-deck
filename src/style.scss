@@ -10,6 +10,7 @@
   top: 0;
   width: 100%;
   height: 100%;
+  backface-visibility: hidden;
 }
 .deck .slide--current,
 .deck .slide--prev {
