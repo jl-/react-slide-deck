@@ -17,16 +17,20 @@ import Slide from './slide';
 import styles from './style.scss';
 
 const SWIPE_DURA = 1400; // default transition duration
-const SWIPE_ONSET = 20;
+const SWIPE_ONSET = 6;
 const SWIPE_FACTOR = 0.4;
 
 const DECK_STATUS = {
   SWIPE_STARTED: 1,
-  SWIPING: 2,
-  SWIPE_FORWARDING: 3,
-  SWIPE_CONFIRMED: 4,
-  SWIPE_CANCELED: 5,
-  NORMAL: 6
+  SWIPING_UP: 2,
+  SWIPING_DOWN: 3,
+  SWIPE_FORWARDING_UP: 4,
+  SWIPE_FORWARDING_DOWN: 5,
+  SWIPE_CONFIRMED_UP: 6,
+  SWIPE_CONFIRMED_DOWN: 7,
+  SWIPE_CANCELED_UP: 8,
+  SWIPE_CANCELED_DOWN: 9,
+  NORMAL: 0
 };
 
 class Deck extends Component {
@@ -37,6 +41,7 @@ class Deck extends Component {
     this.state = {current, prev: current + 1};
   }
   componentWillMount() {
+    this.status = DECK_STATUS.NORMAL;
   }
   shouldComponentUpdate(nextProps, nextState) {
     if (this.status === DECK_STATUS.SWIPE_STARTED) return false;
@@ -53,13 +58,15 @@ class Deck extends Component {
   }
 
   handleWheel(e) {
-    let prev = this.state.current, current = prev + (e.deltaY < 0 ? 1 : e.deltaY > 0 ? -1 : 0);
+    if (this.status !== DECK_STATUS.NORMAL || e.deltaY === 0) return;
+
+    this.status = e.deltaY < 0 ? DECK_STATUS.SWIPE_FORWARDING_DOWN : DECK_STATUS.SWIPE_FORWARDING_UP;
+    let prev = this.state.current, current = prev + (this.status === DECK_STATUS.SWIPE_FORWARDING_DOWN ? 1 : -1);
     let slidesCount = Children.count(this.props.children);
     current = this.props.loop ? (current + slidesCount) % slidesCount : current;
 
-    if (this.status !== DECK_STATUS.SWIPE_FORWARDING && current !== prev && current >= 0 && current < slidesCount) {
+    if (current >= 0 && current < slidesCount) {
       this.setState({current, prev});
-      this.status = DECK_STATUS.SWIPE_FORWARDING;
       setTimeout(() => this.status = DECK_STATUS.NORMAL, this.props.dura || SWIPE_DURA);
     }
   }
@@ -81,24 +88,27 @@ class Deck extends Component {
     let dx = this.props.horizontal ? touch.clientX - x : 0,
         dy = this.props.vertical ? touch.clientY - y : 0;
     let slidesCount = Children.count(this.props.children), distance = dx + dy;
-    prev = current + (distance > 0 ? -1 : distance < 0 ? 1 : 0);
-    prev = this.props.loop ? (prev + slidesCount) % slidesCount : prev;
-    if (Math.abs(distance) > SWIPE_ONSET && prev !== current && prev >= 0 && prev < slidesCount) {
-      this.status = DECK_STATUS.SWIPING;
-      this.setState({dx, dy, prev});
+    if (distance !== 0) {
+      this.status = distance < 0 ? DECK_STATUS.SWIPING_DOWN : DECK_STATUS.SWIPING_UP;
+      prev = current + (this.status === DECK_STATUS.SWIPING_DOWN ? 1 : -1);
+      prev = this.props.loop ? (prev + slidesCount) % slidesCount : prev;
+      if (Math.abs(distance) > SWIPE_ONSET && prev >= 0 && prev < slidesCount) {
+        this.setState({dx, dy, prev});
+      }
     }
   }
   handleTouchEnd(e) {
-    if (this.status !== DECK_STATUS.SWIPING) {
+    if (this.status !== DECK_STATUS.SWIPING_UP && this.status !== DECK_STATUS.SWIPING_DOWN) {
       this.status = DECK_STATUS.NORMAL;
       return;
     }
     let touch = e.changedTouches[0], factor = this.props.factor || SWIPE_FACTOR;
     let { prev, current, x, y, width, height } = this.state;
-    let shouldForward = this.props.horizontal ? Math.abs(touch.clientX - x) / width > factor : Math.abs(touch.clientY - y) / height > factor ;
+    let distance = this.props.horizontal ? touch.clientX - x : touch.clientY - y;
+    let shouldForward = Math.abs(distance) / (this.props.horizontal ? width : height) > factor;
     if (shouldForward) [prev, current] = [current, prev];
     this.setState({prev, current});
-    this.status = shouldForward ? DECK_STATUS.SWIPE_CONFIRMED : DECK_STATUS.SWIPE_CANCELED;
+    this.status = !shouldForward ? (distance > 0 ? DECK_STATUS.SWIPE_CANCELED_UP : DECK_STATUS.SWIPE_CANCELED_DOWN) : (distance > 0 ? DECK_STATUS.SWIPE_CONFIRMED_UP : DECK_STATUS.SWIPE_CONFIRMED_DOWN);
   }
   handleTouchCancel(e) {
     this.status = DECK_STATUS.SWIPE_CANCELED;
@@ -124,45 +134,57 @@ class Deck extends Component {
     let slidesCount = Children.count(children), lastIndex = slidesCount - 1;
     let slides = [], [prevSlideProps, currentSlideProps] = [{style:{}}, {style:{}}];
     let isSameSlideIndex = prev === current;
-    let swiping = this.status === DECK_STATUS.SWIPING,
-        swipeForwarding = this.status === DECK_STATUS.SWIPE_FORWARDING,
-        swipeConfirmed = this.status === DECK_STATUS.SWIPE_CONFIRMED,
-        swipeCanceled = this.status === DECK_STATUS.SWIPE_CANCELED;
+    let swipingUp = this.status === DECK_STATUS.SWIPING_UP,
+        swipingDown = this.status === DECK_STATUS.SWIPING_DOWN,
+        swipeForwardingUp = this.status === DECK_STATUS.SWIPE_FORWARDING_UP,
+        swipeForwardingDown = this.status === DECK_STATUS.SWIPE_FORWARDING_DOWN,
+        swipeConfirmedUp = this.status === DECK_STATUS.SWIPE_CONFIRMED_UP,
+        swipeConfirmedDown = this.status === DECK_STATUS.SWIPE_CONFIRMED_DOWN,
+        swipeCanceledUp = this.status === DECK_STATUS.SWIPE_CANCELED_UP,
+        swipeCanceledDown = this.status === DECK_STATUS.SWIPE_CANCELED_DOWN,
+        normal = this.status === DECK_STATUS.NORMAL;
+
     /*
-    swiping && console.log('swiping');
-    swipeForwarding && console.log('swipeForwarding');
-    swipeConfirmed && console.log('swipeConfrimed');
-    swipeCanceled && console.log('swipeCanceled');
-    console.log('prev current: ', prev, current);
+    swipingUp && console.log('swipingUp');
+    swipingDown && console.log('swipingDown');
+    swipeForwardingUp && console.log('swipeForwardingUp');
+    swipeForwardingDown && console.log('swipeForwardingDown');
+    swipeConfirmedUp && console.log('swipeConfrimedUp');
+    swipeConfirmedDown && console.log('swipeConfrimedDown');
+    swipeCanceledUp && console.log('swipeCanceledUp');
+    swipeCanceledDown && console.log('swipeCanceledDown');
+    normal && console.log('normal');
     */
 
-    loop = loop && (swiping || swipeForwarding || swipeConfirmed || swipeCanceled);
+    loop = loop && !normal;
     if (isSameSlideIndex) prev = this.normalizeIndex(current + 1);
 
-    if (swiping) {
+    if (swipingUp || swipingDown) {
       prevSlideProps.style = this.setSlideStyle(true);
       currentSlideProps.style = this.setSlideStyle(false);
     } else {
       currentSlideProps.current = prevSlideProps.prev = true;
       currentSlideProps.reset = current > prev ? 'after' : 'before';
+      prevSlideProps[prev < current ? 'before' : 'after'] = true;
       if (loop) {
-        if (prev === 0 && current === lastIndex) {
+        if (prev === 0 && current === lastIndex && (swipeConfirmedUp || swipeForwardingUp || swipeCanceledDown)) {
+          prevSlideProps.after = true; prevSlideProps.before = false;
           currentSlideProps.reset = 'before';
-        } else if (prev === lastIndex && current === 0) {
+        } else if (prev === lastIndex && current === 0 && (swipeConfirmedDown || swipeForwardingDown || swipeCanceledUp)) {
+          prevSlideProps.after = false; prevSlideProps.before = true;
           currentSlideProps.reset = 'after';
         }
       }
-      prevSlideProps[currentSlideProps.reset === 'before' ? 'after' : 'before'] = true;
       if (isSameSlideIndex) {
         currentSlideProps.reset = prevSlideProps.prev = false;
       }
-      if (swipeConfirmed || swipeCanceled) {
+      if (swipeConfirmedUp || swipeConfirmedDown || swipeCanceledUp || swipeCanceledDown) {
         this.status = DECK_STATUS.NORMAL;
         currentSlideProps.reset = false;
       }
     }
 
-    this.currIndex = (swiping || swipeCanceled) ? this.currIndex : +(isSameSlideIndex && this.currIndex === 1 || !isSameSlideIndex && this.currIndex === 0);
+    this.currIndex = (swipingUp || swipingDown || swipeCanceledUp || swipeCanceledDown) ? this.currIndex : +(isSameSlideIndex && this.currIndex === 1 || !isSameSlideIndex && this.currIndex === 0);
 
     prevSlideProps.key = +!this.currIndex;
     currentSlideProps.key = this.currIndex;
