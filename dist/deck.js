@@ -132,7 +132,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _get(Object.getPrototypeOf(Deck.prototype), 'constructor', this).call(this, props, context);
 	    var current = props.current;
 	
-	    this.currIndex = 0;
 	    this.state = { current: current, prev: current + 1 };
 	  }
 	
@@ -238,9 +237,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var shouldForward = Math.abs(distance) / (this.props.horizontal ? width : height) > factor;
 	      if (shouldForward) {
 	        ;
-	        var _ref = [current, prev];
-	        prev = _ref[0];
-	        current = _ref[1];
+	        var _ref2 = [current, prev];
+	        prev = _ref2[0];
+	        current = _ref2[1];
 	      }this.setState({ prev: prev, current: current });
 	      this.status = !shouldForward ? distance > 0 ? DECK_STATUS.SWIPE_CANCELED_UP : DECK_STATUS.SWIPE_CANCELED_DOWN : distance > 0 ? DECK_STATUS.SWIPE_CONFIRMED_UP : DECK_STATUS.SWIPE_CONFIRMED_DOWN;
 	    }
@@ -273,7 +272,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'updateSlides',
 	    value: function updateSlides() {
 	      var _props = this.props;
-	      var children = _props.children;
+	      var slides = _props.children;
 	      var horizontal = _props.horizontal;
 	      var vertical = _props.vertical;
 	      var loop = _props.loop;
@@ -283,12 +282,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var dx = _state4.dx;
 	      var dy = _state4.dy;
 	
-	      var slidesCount = _react.Children.count(children),
+	      var slidesCount = _react.Children.count(slides),
 	          lastIndex = slidesCount - 1;
-	      var slides = [];var prevSlideProps = { style: {} };
-	      var currentSlideProps = { style: {} };
-	
-	      var isSameSlideIndex = prev === current;
 	      var swipingUp = this.status === DECK_STATUS.SWIPING_UP,
 	          swipingDown = this.status === DECK_STATUS.SWIPING_DOWN,
 	          swipeForwardingUp = this.status === DECK_STATUS.SWIPE_FORWARDING_UP,
@@ -298,29 +293,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	          swipeCanceledUp = this.status === DECK_STATUS.SWIPE_CANCELED_UP,
 	          swipeCanceledDown = this.status === DECK_STATUS.SWIPE_CANCELED_DOWN,
 	          normal = this.status === DECK_STATUS.NORMAL;
-	
-	      /*
-	      swipingUp && console.log('swipingUp');
-	      swipingDown && console.log('swipingDown');
-	      swipeForwardingUp && console.log('swipeForwardingUp');
-	      swipeForwardingDown && console.log('swipeForwardingDown');
-	      swipeConfirmedUp && console.log('swipeConfrimedUp');
-	      swipeConfirmedDown && console.log('swipeConfrimedDown');
-	      swipeCanceledUp && console.log('swipeCanceledUp');
-	      swipeCanceledDown && console.log('swipeCanceledDown');
-	      normal && console.log('normal');
-	      */
+	      var slidesProps = _react.Children.map(slides, function (slide, index) {
+	        return _defineProperty({
+	          style: {},
+	          key: index
+	        }, index < current ? 'before' : index === current ? 'current' : 'after', true);
+	      });
+	      var prevSlideProps = slidesProps[prev],
+	          currentSlideProps = slidesProps[current];
 	
 	      loop = loop && !normal;
-	      if (isSameSlideIndex) prev = this.normalizeIndex(current + 1);
-	
 	      if (swipingUp || swipingDown) {
+	        prevSlideProps.before = prevSlideProps.after = currentSlideProps.current = prevSlideProps.pre = false;
 	        prevSlideProps.style = this.setSlideStyle(true);
 	        currentSlideProps.style = this.setSlideStyle(false);
-	      } else {
-	        currentSlideProps.current = prevSlideProps.prev = true;
+	      } else if (prev !== current) {
+	        prevSlideProps.prev = true;
 	        currentSlideProps.reset = current > prev ? 'after' : 'before';
-	        prevSlideProps[prev < current ? 'before' : 'after'] = true;
 	        if (loop) {
 	          if (prev === 0 && current === lastIndex && (swipeConfirmedUp || swipeForwardingUp || swipeCanceledDown)) {
 	            prevSlideProps.after = true;prevSlideProps.before = false;
@@ -330,23 +319,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	            currentSlideProps.reset = 'after';
 	          }
 	        }
-	        if (isSameSlideIndex) {
-	          currentSlideProps.reset = prevSlideProps.prev = false;
-	        }
 	        if (swipeConfirmedUp || swipeConfirmedDown || swipeCanceledUp || swipeCanceledDown) {
 	          this.status = DECK_STATUS.NORMAL;
 	          currentSlideProps.reset = false;
 	        }
 	      }
 	
-	      this.currIndex = swipingUp || swipingDown || swipeCanceledUp || swipeCanceledDown ? this.currIndex : +(isSameSlideIndex && this.currIndex === 1 || !isSameSlideIndex && this.currIndex === 0);
-	
-	      prevSlideProps.key = +!this.currIndex;
-	      currentSlideProps.key = this.currIndex;
-	      slides[+!this.currIndex] = _react2['default'].cloneElement(children[prev], prevSlideProps);
-	      slides[this.currIndex] = _react2['default'].cloneElement(children[current], currentSlideProps);
-	
-	      return slides;
+	      return slidesProps.map(function (props, index) {
+	        return _react2['default'].cloneElement(slides[index], props);
+	      });
 	    }
 	  }, {
 	    key: 'render',
@@ -581,7 +562,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	// module
-	exports.push([module.id, ".deck {\n  position: relative;\n  width: 100%;\n  height: 100%;\n  overflow: hidden; }\n\n.deck .slide {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  -webkit-backface-visibility: hidden;\n          backface-visibility: hidden; }\n\n.deck .slide--current,\n.deck .slide--prev {\n  -webkit-transition: -webkit-transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1);\n          transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1); }\n\n.deck .slide--current {\n  -webkit-transform: translate3d(0, 0, 0);\n          transform: translate3d(0, 0, 0); }\n\n.deck--horizontal .slide--before {\n  -webkit-transform: translate3d(-100%, 0, 0);\n          transform: translate3d(-100%, 0, 0); }\n\n.deck--horizontal .slide--after {\n  -webkit-transform: translate3d(100%, 0, 0);\n          transform: translate3d(100%, 0, 0); }\n\n.deck--vertical .slide--before {\n  -webkit-transform: translate3d(0, -100%, 0);\n          transform: translate3d(0, -100%, 0); }\n\n.deck--vertical .slide--after {\n  -webkit-transform: translate3d(0, 100%, 0);\n          transform: translate3d(0, 100%, 0); }\n", ""]);
+	exports.push([module.id, ".deck {\n  position: relative;\n  width: 100%;\n  height: 100%;\n  overflow: hidden; }\n\n.deck .slide {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  -webkit-backface-visibility: hidden;\n          backface-visibility: hidden; }\n\n.deck .slide--current,\n.deck .slide--prev {\n  -webkit-transition: -webkit-transform 1s cubic-bezier(0.34, 0.24, 0.09, 1.01);\n          transition: transform 1s cubic-bezier(0.34, 0.24, 0.09, 1.01); }\n\n.deck .slide--current {\n  -webkit-transform: translate3d(0, 0, 0);\n          transform: translate3d(0, 0, 0); }\n\n.deck--horizontal .slide--before {\n  -webkit-transform: translate3d(-100%, 0, 0);\n          transform: translate3d(-100%, 0, 0); }\n\n.deck--horizontal .slide--after {\n  -webkit-transform: translate3d(100%, 0, 0);\n          transform: translate3d(100%, 0, 0); }\n\n.deck--vertical .slide--before {\n  -webkit-transform: translate3d(0, -100%, 0);\n          transform: translate3d(0, -100%, 0); }\n\n.deck--vertical .slide--after {\n  -webkit-transform: translate3d(0, 100%, 0);\n          transform: translate3d(0, 100%, 0); }\n", ""]);
 	
 	// exports
 

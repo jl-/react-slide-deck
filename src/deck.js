@@ -37,7 +37,6 @@ class Deck extends Component {
   constructor(props, context) {
     super(props, context);
     let { current } = props;
-    this.currIndex = 0;
     this.state = {current, prev: current + 1};
   }
   componentWillMount() {
@@ -129,11 +128,9 @@ class Deck extends Component {
   }
 
   updateSlides() {
-    let { children, horizontal, vertical, loop } = this.props;
+    let { children: slides, horizontal, vertical, loop } = this.props;
     let { prev, current, dx, dy } = this.state;
-    let slidesCount = Children.count(children), lastIndex = slidesCount - 1;
-    let slides = [], [prevSlideProps, currentSlideProps] = [{style:{}}, {style:{}}];
-    let isSameSlideIndex = prev === current;
+    let slidesCount = Children.count(slides), lastIndex = slidesCount - 1;
     let swipingUp = this.status === DECK_STATUS.SWIPING_UP,
         swipingDown = this.status === DECK_STATUS.SWIPING_DOWN,
         swipeForwardingUp = this.status === DECK_STATUS.SWIPE_FORWARDING_UP,
@@ -143,29 +140,21 @@ class Deck extends Component {
         swipeCanceledUp = this.status === DECK_STATUS.SWIPE_CANCELED_UP,
         swipeCanceledDown = this.status === DECK_STATUS.SWIPE_CANCELED_DOWN,
         normal = this.status === DECK_STATUS.NORMAL;
-
-    /*
-    swipingUp && console.log('swipingUp');
-    swipingDown && console.log('swipingDown');
-    swipeForwardingUp && console.log('swipeForwardingUp');
-    swipeForwardingDown && console.log('swipeForwardingDown');
-    swipeConfirmedUp && console.log('swipeConfrimedUp');
-    swipeConfirmedDown && console.log('swipeConfrimedDown');
-    swipeCanceledUp && console.log('swipeCanceledUp');
-    swipeCanceledDown && console.log('swipeCanceledDown');
-    normal && console.log('normal');
-    */
+    let slidesProps = Children.map(slides, (slide, index) => ({
+      style: {},
+      key: index,
+      [index < current ? 'before' : index === current ? 'current' : 'after']: true
+    }));
+    let prevSlideProps = slidesProps[prev], currentSlideProps = slidesProps[current];
 
     loop = loop && !normal;
-    if (isSameSlideIndex) prev = this.normalizeIndex(current + 1);
-
     if (swipingUp || swipingDown) {
+      prevSlideProps.before = prevSlideProps.after = currentSlideProps.current = prevSlideProps.pre = false;
       prevSlideProps.style = this.setSlideStyle(true);
       currentSlideProps.style = this.setSlideStyle(false);
-    } else {
-      currentSlideProps.current = prevSlideProps.prev = true;
+    } else if (prev !== current) {
+      prevSlideProps.prev = true;
       currentSlideProps.reset = current > prev ? 'after' : 'before';
-      prevSlideProps[prev < current ? 'before' : 'after'] = true;
       if (loop) {
         if (prev === 0 && current === lastIndex && (swipeConfirmedUp || swipeForwardingUp || swipeCanceledDown)) {
           prevSlideProps.after = true; prevSlideProps.before = false;
@@ -175,23 +164,13 @@ class Deck extends Component {
           currentSlideProps.reset = 'after';
         }
       }
-      if (isSameSlideIndex) {
-        currentSlideProps.reset = prevSlideProps.prev = false;
-      }
       if (swipeConfirmedUp || swipeConfirmedDown || swipeCanceledUp || swipeCanceledDown) {
         this.status = DECK_STATUS.NORMAL;
         currentSlideProps.reset = false;
       }
     }
 
-    this.currIndex = (swipingUp || swipingDown || swipeCanceledUp || swipeCanceledDown) ? this.currIndex : +(isSameSlideIndex && this.currIndex === 1 || !isSameSlideIndex && this.currIndex === 0);
-
-    prevSlideProps.key = +!this.currIndex;
-    currentSlideProps.key = this.currIndex;
-    slides[+!this.currIndex] = React.cloneElement(children[prev], prevSlideProps);
-    slides[this.currIndex] = React.cloneElement(children[current], currentSlideProps);
-
-    return slides;
+    return slidesProps.map((props, index) => React.cloneElement(slides[index], props));
   }
 
   render() {
