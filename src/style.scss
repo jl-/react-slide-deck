@@ -12,10 +12,6 @@
   height: 100%;
   backface-visibility: hidden;
 }
-.deck .slide--current,
-.deck .slide--prev {
-  transition: transform 1s cubic-bezier(.34,.24,.09,1.01);
-}
 .deck .slide--current {
   transform: translate3d(0,0,0);
 }

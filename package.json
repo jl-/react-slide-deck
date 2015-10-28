@@ -1,6 +1,6 @@
 {
   "name": "react-slide-deck",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "react slide deck, carousel, page scroll, swipe",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -47,9 +47,10 @@
     "gulp": "^3.9.0",
     "gulp-connect": "^2.2.0",
     "html-webpack-plugin": "^1.6.2",
+    "node-sass": "^3.3.3",
+    "raf": "^3.1.0",
     "react": "^0.14.0",
     "react-dom": "^0.14.0",
-    "node-sass": "^3.3.3",
     "sass-loader": "^3.0.0",
     "style-loader": "^0.13.0",
     "url-loader": "^0.5.6",

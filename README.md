@@ -1,5 +1,5 @@
 > A simple react component for swipe, tabs, carousel, one page scroll ...,
-with animation hooks. works on PC and touch devices
+with animation hooks. tweening, tween callbacks. works on PC and touch devices
 
 ---
 
@@ -11,24 +11,23 @@ with animation hooks. works on PC and touch devices
 # [Demo](http://output.jsbin.com/hexada)
 also open on touch device, see the swipe effect
 
+note that the demo is out of date. see this README  for updated usage
+
 --
 
 #### Usage:
 
 ```js
+
+import React, { Component } from 'react';
+
 import Deck from 'react-slide-deck';
+
 
 class Demo extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      current: 0,
-      horizontal: true,
-      swipe: true,
-      loop: true,
-      factor: 0.4,
-      dura: 1400
-    };
+    this.state = {current: 0, horizontal: true, swipe: true, factor: 0.3, loop: true};
   }
   change(event) {
     let target = event.target;
@@ -38,20 +37,32 @@ class Demo extends Component {
       current: index
     });
   }
+  onSwitching(progress, deck) {
+    console.log('switching callback');
+    console.log(progress, deck.state.distance);
+  }
+  onSwitchDone(deck) {
+    console.log('switchDone callback');
+    console.log(deck);
+  }
   render() {
     return (
-      <div className='carousel'>
-
-        <Deck {...this.state}>
-          <Deck.Slide> slide 1 </Deck.Slide>
-          <Deck.Slide> slide 2 </Deck.Slide>
-          <Deck.Slide>
-            <div className='item'>slide 3</div>
+      <div>
+        <Deck {...this.state} onSwitching={this.onSwitching} onSwitchDone={this.onSwitchDone}>
+          <Deck.Slide className='bg-black'>
+          1
           </Deck.Slide>
-          <Deck.Slide> slide 4 </Deck.Slide>
+          <Deck.Slide className='bg-green'>
+          2
+          </Deck.Slide>
+          <Deck.Slide className='bg-red'>
+          3
+          </Deck.Slide>
+          <Deck.Slide className='bg-yellow'>
+          4
+          </Deck.Slide>
         </Deck>
-
-        <ul className={styles.indicators} onClick={::this.change}>
+        <ul className='indicators' onClick={::this.change}>
           <li>1</li>
           <li>2</li>
           <li>3</li>
@@ -70,10 +81,13 @@ class Demo extends Component {
 <Deck
   horizontal|vertical // direction for the slides
   swipe // can scroll(mousewheel) or not; on touch devices, it is touch event
-  factor // swipe distance used to determine whether to swipe forward or abort.
+  factor // swipe distance used to determine whether to swipe forward or abort on touch devices.
          // if (swipeDistance / width(or height for vertical)) > factor, then will switch to next slide, otherwise return to the current slide.
-  loop //  scroll down on the last Deck.Slide => transition to the first Deck.Slide. only work when `scroll` is set
+  loop //  scroll down on the last Deck.Slide => transition to the first Deck.Slide.(first => last as well). only work when `swipe` is set
   dura // duration for slide transition, optional. default is 1400ms
+  easeing // `function|string` tweening easing function for transition between slides. see detail below,
+  onSwitching // function(progress, deck) /*fired on every tweening transition. `deck` is the component instance of Deck, useful for accessing data like deck.status, deck.state.distance ...*/
+  onSwitchDone // function(deck) /*fired when slide transition is finished*/
   >
   <Deck.Slide> content </Deck.Slide>
   <Deck.Slide> content2 </Deck.Slide>
@@ -98,6 +112,12 @@ use these classes hook to do css animations, for example:
 }
 // when switch to the 3rd slide, the `.item` will be animated
 ```
+
+---
+
+`easing`:
+  - `function(currentTime/duration)` a function used to do the tweening easing effect, take one argument
+  - `string`, name of built in easing function. see `src/ease.js` for details
 
 ---
 
