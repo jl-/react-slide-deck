@@ -60,11 +60,8 @@ class Deck extends Component {
     this.status = STATUS.NORMAL;
   }
   componentDidMount() {
-    let dom = ReactDOM.findDOMNode(this);
-    this.setState({
-      width: dom.offsetWidth,
-      height: dom.offsetHeight
-    });
+    this.dimension();
+    window.addEventListener('resize', ::this.dimension);
   }
   shouldComponentUpdate(nextProps, nextState) {
     if (this.status === STATUS.SWIPE_STARTED) return false;
@@ -72,22 +69,30 @@ class Deck extends Component {
   }
   componentWillReceiveProps(nextProps) {
     let current = this.normalizeIndex(nextProps.current), prev = this.state.current;
-    this.status = STATUS.NORMAL;
-    this.setState({current, prev});
-    if (current !== prev) {
-      this.status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
-      this.startTran(0, (prev < current ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
+    let status = this.status;
+    if (status === STATUS.NORMAL) {
+      this.setState({current, prev});
+      if (prev !== current) {
+        this.status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
+        this.startTran(0, (prev < current ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
+      }
     }
   }
   normalizeIndex(index) {
     let slidesCount = Children.count(this.props.children);
     return (index + slidesCount) % slidesCount;
   }
-  onSwitching(props) {
-    this.setState(props);
+  dimension() {
+    let dom = ReactDOM.findDOMNode(this);
+    this.setState({
+      width: dom.offsetWidth,
+      height: dom.offsetHeight
+    });
+  }
+  onSwitching({distance, factor}) {
+    this.setState({distance});
     if (this.props.onSwitching) {
-      let { width, height, prev, current } = this.state;
-      this.props.onSwitching.call(this, this.tween.progress(), this);
+      this.props.onSwitching.call(this, factor || Math.abs(distance) / (this.props.horizontal ? this.state.width : this.state.height), this);
     }
   }
   onSwitchDone(props) {
@@ -141,7 +146,7 @@ class Deck extends Component {
     let status = this.status;
     if (status !== STATUS.SWIPE_STARTED && status !== STATUS.SWIPING_UP && status !== STATUS.SWIPING_DOWN) return;
     let touch = e.changedTouches[0];
-    let { prev, current, x, y, distance = 0 } = this.state;
+    let { prev, current, x, y, width, height, distance = 0 } = this.state;
     let { horizontal, vertical } = this.props;
     if (status === STATUS.SWIPE_STARTED && distance !== 0) {
       x = horizontal ? touch.clientX - distance : 0;
@@ -163,7 +168,8 @@ class Deck extends Component {
     }
 
     this.status = distance < 0 ? STATUS.SWIPING_DOWN : STATUS.SWIPING_UP;
-    this.onSwitching({distance, current: prev});
+    this.setState({current: prev});
+    this.onSwitching({distance, factor: Math.abs(distance) / (horizontal ? width : height)});
   }
   handleTouchEnd(e) {
     if (this.status !== STATUS.SWIPING_UP && this.status !== STATUS.SWIPING_DOWN) {
@@ -269,7 +275,7 @@ class Deck extends Component {
       'deck--vertical': vertical
     }, 'deck');
     return (
-      <div className={className} {...rest}>
+      <div className={className} onResize={::this.dimension}  {...rest}>
         {this.updateSlides()}
       </div>
     );

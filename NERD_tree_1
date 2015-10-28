@@ -1,0 +1,22 @@
+</jl-/react-slide-deck/
+▸ .git/
+▸ dist/
+▸ node_modules/
+▾ src/
+    deck.js
+    ease.js
+    flat-event.js
+    slide.js
+    style.scss
+    tween.js
+  .babelrc*
+  .DS_Store
+  .editorconfig
+  .eslintignore*
+  .eslintrc*
+  .gitignore*
+  gulpfile.babel.js*
+  LICENSE
+  package.json
+  README.md
+  webpack.conf.js*

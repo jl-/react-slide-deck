@@ -11,8 +11,6 @@ with animation hooks. tweening, tween callbacks. works on PC and touch devices
 # [Demo](http://output.jsbin.com/hexada)
 also open on touch device, see the swipe effect
 
-note that the demo is out of date. see this README  for updated usage
-
 --
 
 #### Usage:

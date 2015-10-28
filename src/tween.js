@@ -10,9 +10,11 @@ import raf from 'raf';
 import ease from './ease';
 const STATUS = {
   INIT: 1,
-  STOPPED: 2,
+  RUNNING: 2,
+  STOPPED: 3,
   PAUSED: 4,
-  DONE: 3,
+  RESUMED: 5,
+  DONE: 6,
 };
 class Tween extends FlatEvent {
   constructor(from, easing, duration) {
@@ -22,14 +24,19 @@ class Tween extends FlatEvent {
         .duration(duration);
   }
   reset(from) {
-    this._from = from || this._from;
+    this.stop();
+    this.from(from);
     this._curr = this._from; // no need a deep clone
     this._lasted = 0;
     this._status = STATUS.INIT;
     return this;
   }
+  from (props) {
+    this._from = props || this._from;
+    return this;
+  }
   to(props) {
-    this._to = props;
+    this._to = props || this._to;
     return this;
   }
   ease(fn = ease.outCube) {
@@ -88,17 +95,18 @@ class Tween extends FlatEvent {
     }
     return this.step();
   }
-  progress() {
-    return (this._lasted / this._duration) || 0;
+  resume(p) {
+    if (this._status === STATUS.RUNNING) return;
+    if (p) this._lasted = p * this._duration;
+    this._status = STATUS.RUNNING;
+    this._latest = Date.now();
+    return this.iterate();
   }
   start() {
-    this.reset();
-    this._latest = this._start = Date.now();
-    this.iterate();
-  }
-  resume() {
-    this._latest = Date.now();
-    this.iterate();
+    if (this.resume()) {
+      this._start = this._latest;
+    }
+    return this;
   }
 }
 Tween.ease = ease;

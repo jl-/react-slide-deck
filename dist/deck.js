@@ -6,7 +6,7 @@
 	else if(typeof exports === 'object')
 		exports["ReactDeck"] = factory(require("react"), require("react-dom"));
 	else
-		root["ReactDeck"] = factory(root["React"], root["ReactDom"]);
+		root["ReactDeck"] = factory(root["React"], root["ReactDOM"]);
 })(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -159,11 +159,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
-	      var dom = _reactDom2['default'].findDOMNode(this);
-	      this.setState({
-	        width: dom.offsetWidth,
-	        height: dom.offsetHeight
-	      });
+	      this.dimension();
+	      window.addEventListener('resize', this.dimension.bind(this));
 	    }
 	  }, {
 	    key: 'shouldComponentUpdate',
@@ -176,11 +173,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function componentWillReceiveProps(nextProps) {
 	      var current = this.normalizeIndex(nextProps.current),
 	          prev = this.state.current;
-	      this.status = STATUS.NORMAL;
-	      this.setState({ current: current, prev: prev });
-	      if (current !== prev) {
-	        this.status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
-	        this.startTran(0, (prev < current ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
+	      var status = this.status;
+	      if (status === STATUS.NORMAL) {
+	        this.setState({ current: current, prev: prev });
+	        if (prev !== current) {
+	          this.status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
+	          this.startTran(0, (prev < current ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
+	        }
 	      }
 	    }
 	  }, {
@@ -190,17 +189,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return (index + slidesCount) % slidesCount;
 	    }
 	  }, {
+	    key: 'dimension',
+	    value: function dimension() {
+	      var dom = _reactDom2['default'].findDOMNode(this);
+	      this.setState({
+	        width: dom.offsetWidth,
+	        height: dom.offsetHeight
+	      });
+	    }
+	  }, {
 	    key: 'onSwitching',
-	    value: function onSwitching(props) {
-	      this.setState(props);
-	      if (this.props.onSwitching) {
-	        var _state = this.state;
-	        var width = _state.width;
-	        var height = _state.height;
-	        var prev = _state.prev;
-	        var current = _state.current;
+	    value: function onSwitching(_ref2) {
+	      var distance = _ref2.distance;
+	      var factor = _ref2.factor;
 	
-	        this.props.onSwitching.call(this, this.tween.progress(), this);
+	      this.setState({ distance: distance });
+	      if (this.props.onSwitching) {
+	        this.props.onSwitching.call(this, factor || Math.abs(distance) / (this.props.horizontal ? this.state.width : this.state.height), this);
 	      }
 	    }
 	  }, {
@@ -271,13 +276,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var status = this.status;
 	      if (status !== STATUS.SWIPE_STARTED && status !== STATUS.SWIPING_UP && status !== STATUS.SWIPING_DOWN) return;
 	      var touch = e.changedTouches[0];
-	      var _state2 = this.state;
-	      var prev = _state2.prev;
-	      var current = _state2.current;
-	      var x = _state2.x;
-	      var y = _state2.y;
-	      var _state2$distance = _state2.distance;
-	      var distance = _state2$distance === undefined ? 0 : _state2$distance;
+	      var _state = this.state;
+	      var prev = _state.prev;
+	      var current = _state.current;
+	      var x = _state.x;
+	      var y = _state.y;
+	      var width = _state.width;
+	      var height = _state.height;
+	      var _state$distance = _state.distance;
+	      var distance = _state$distance === undefined ? 0 : _state$distance;
 	      var _props2 = this.props;
 	      var horizontal = _props2.horizontal;
 	      var vertical = _props2.vertical;
@@ -302,7 +309,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      this.status = distance < 0 ? STATUS.SWIPING_DOWN : STATUS.SWIPING_UP;
-	      this.onSwitching({ distance: distance, current: prev });
+	      this.setState({ current: prev });
+	      this.onSwitching({ distance: distance, factor: Math.abs(distance) / (horizontal ? width : height) });
 	    }
 	  }, {
 	    key: 'handleTouchEnd',
@@ -316,20 +324,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var vertical = _props3.vertical;
 	      var _props3$factor = _props3.factor;
 	      var factor = _props3$factor === undefined ? SWIPE_FACTOR : _props3$factor;
-	      var _state3 = this.state;
-	      var prev = _state3.prev;
-	      var current = _state3.current;
-	      var width = _state3.width;
-	      var height = _state3.height;
-	      var distance = _state3.distance;
+	      var _state2 = this.state;
+	      var prev = _state2.prev;
+	      var current = _state2.current;
+	      var width = _state2.width;
+	      var height = _state2.height;
+	      var distance = _state2.distance;
 	
 	      var touch = e.changedTouches[0];
 	      var shouldForward = Math.abs(distance) / (horizontal ? width : height) > factor;
 	      if (!shouldForward) {
 	        ;
-	        var _ref2 = [prev, current];
-	        current = _ref2[0];
-	        prev = _ref2[1];
+	        var _ref3 = [prev, current];
+	        current = _ref3[0];
+	        prev = _ref3[1];
 	      }this.setState({ prev: prev, current: current });
 	      this.status = !shouldForward ? distance > 0 ? STATUS.SWIPE_CANCELED_UP : STATUS.SWIPE_CANCELED_DOWN : distance > 0 ? STATUS.SWIPE_FORWARDING_UP : STATUS.SWIPE_FORWARDING_DOWN;
 	      this.startTran(distance, (shouldForward ? distance > 0 ? 1 : -1 : 0) * (horizontal ? width : height));
@@ -342,12 +350,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'setSlideStyle',
 	    value: function setSlideStyle(factor) {
-	      var _state4 = this.state;
-	      var prev = _state4.prev;
-	      var current = _state4.current;
-	      var distance = _state4.distance;
-	      var width = _state4.width;
-	      var height = _state4.height;
+	      var _state3 = this.state;
+	      var prev = _state3.prev;
+	      var current = _state3.current;
+	      var distance = _state3.distance;
+	      var width = _state3.width;
+	      var height = _state3.height;
 	      var _props4 = this.props;
 	      var horizontal = _props4.horizontal;
 	      var vertical = _props4.vertical;
@@ -369,9 +377,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var horizontal = _props5.horizontal;
 	      var vertical = _props5.vertical;
 	      var loop = _props5.loop;
-	      var _state5 = this.state;
-	      var prev = _state5.prev;
-	      var current = _state5.current;
+	      var _state4 = this.state;
+	      var prev = _state4.prev;
+	      var current = _state4.current;
 	
 	      var slidesCount = _react.Children.count(slides),
 	          lastIndex = slidesCount - 1;
@@ -460,7 +468,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      className = (0, _classnames2['default'])((_cns = {}, _defineProperty(_cns, className, !!className), _defineProperty(_cns, 'deck--horizontal', horizontal), _defineProperty(_cns, 'deck--vertical', vertical), _cns), 'deck');
 	      return _react2['default'].createElement(
 	        'div',
-	        _extends({ className: className }, rest),
+	        _extends({ className: className, onResize: this.dimension.bind(this) }, rest),
 	        this.updateSlides()
 	      );
 	    }
@@ -527,9 +535,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var STATUS = {
 	  INIT: 1,
-	  STOPPED: 2,
+	  RUNNING: 2,
+	  STOPPED: 3,
 	  PAUSED: 4,
-	  DONE: 3
+	  RESUMED: 5,
+	  DONE: 6
 	};
 	
 	var Tween = (function (_FlatEvent) {
@@ -545,16 +555,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _createClass(Tween, [{
 	    key: 'reset',
 	    value: function reset(from) {
-	      this._from = from || this._from;
+	      this.stop();
+	      this.from(from);
 	      this._curr = this._from; // no need a deep clone
 	      this._lasted = 0;
 	      this._status = STATUS.INIT;
 	      return this;
 	    }
 	  }, {
+	    key: 'from',
+	    value: function from(props) {
+	      this._from = props || this._from;
+	      return this;
+	    }
+	  }, {
 	    key: 'to',
 	    value: function to(props) {
-	      this._to = props;
+	      this._to = props || this._to;
 	      return this;
 	    }
 	  }, {
@@ -632,22 +649,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.step();
 	    }
 	  }, {
-	    key: 'progress',
-	    value: function progress() {
-	      return this._lasted / this._duration || 0;
+	    key: 'resume',
+	    value: function resume(p) {
+	      if (this._status === STATUS.RUNNING) return;
+	      if (p) this._lasted = p * this._duration;
+	      this._status = STATUS.RUNNING;
+	      this._latest = Date.now();
+	      return this.iterate();
 	    }
 	  }, {
 	    key: 'start',
 	    value: function start() {
-	      this.reset();
-	      this._latest = this._start = Date.now();
-	      this.iterate();
-	    }
-	  }, {
-	    key: 'resume',
-	    value: function resume() {
-	      this._latest = Date.now();
-	      this.iterate();
+	      if (this.resume()) {
+	        this._start = this._latest;
+	      }
+	      return this;
 	    }
 	  }]);
 	
@@ -1235,19 +1251,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  _createClass(Slide, [{
-	    key: 'componentWillReceiveProps',
-	    value: function componentWillReceiveProps(nextProps) {
-	      this.reset(nextProps.reset);
-	    }
-	  }, {
-	    key: 'reset',
-	    value: function reset(status) {
-	      if (!status) return;
-	      var slide = _reactDom2['default'].findDOMNode(this);
-	      slide.className = 'slide slide--' + status;
-	      slide.offsetWidth;
-	    }
-	  }, {
 	    key: 'render',
 	    value: function render() {
 	      var _props = this.props;
