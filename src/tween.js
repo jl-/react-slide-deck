@@ -39,13 +39,13 @@ class Tween extends FlatEvent {
     this._to = props || this._to;
     return this;
   }
-  ease(fn = ease.outCube) {
+  ease(fn = ease.outQuint) {
     fn = typeof fn === 'function' ? fn : ease[fn];
     if (!fn) throw new TypeError('invalid easing function');
     this._ease = fn;
     return this;
   }
-  duration(ms = 800) {
+  duration(ms = 1600) {
     this._duration = ms;
     return this;
   }
@@ -79,12 +79,6 @@ class Tween extends FlatEvent {
     return this;
   }
   iterate() {
-    let status = this._status;
-    if (status === STATUS.PAUSED || status === STATUS.STOPPED) {
-      raf.cancel(this._raf);
-      return;
-    }
-
     let lasted = Date.now() - this._latest + this._lasted;
     if (lasted >= this._duration) {
       this._lasted = this._duration;
@@ -103,9 +97,7 @@ class Tween extends FlatEvent {
     return this.iterate();
   }
   start() {
-    if (this.resume()) {
-      this._start = this._latest;
-    }
+    this.resume(0) && (this._start = this._latest);
     return this;
   }
 }

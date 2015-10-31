@@ -50,7 +50,7 @@ class Deck extends Component {
     let { current } = props;
     this.state = {current, prev: current + 1};
     this.tween = new Tween();
-    this.tween.ease(props.easing).duration(props.dura || 800)
+    this.tween.ease(props.easing).duration(props.dura || 1200)
         .on('update', ::this.onSwitching)
         .on('stop', ::this.onSwitchStopped)
         .on('pause', ::this.onSwitchPaused)
@@ -121,12 +121,12 @@ class Deck extends Component {
     if (this.status !== STATUS.NORMAL || e.deltaY === 0) return;
 
     let { children: slides, loop, horizontal } = this.props;
-    let prev = this.state.current, current = prev + (e.deltaY < 0 ? 1 : -1);
+    let prev = this.state.current, current = prev + (e.deltaY > 0 ? 1 : -1);
     let slidesCount = Children.count(slides);
     current = loop ? (current + slidesCount) % slidesCount : current;
 
     if (current >= 0 && current < slidesCount) {
-      this.status = e.deltaY < 0 ? STATUS.SWIPE_FORWARDING_DOWN : STATUS.SWIPE_FORWARDING_UP;
+      this.status = e.deltaY > 0 ? STATUS.SWIPE_FORWARDING_DOWN : STATUS.SWIPE_FORWARDING_UP;
       this.setState({current, prev});
       this.startTran(0, (this.status === STATUS.SWIPE_FORWARDING_DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
     }
@@ -204,11 +204,6 @@ class Deck extends Component {
     let { children: slides, horizontal, vertical, loop } = this.props;
     let { prev, current } = this.state;
     let slidesCount = Children.count(slides), lastIndex = slidesCount - 1;
-    let slidesProps = Children.map(slides, (slide, index) => ({
-      key: index,
-      [index < current ? 'before' : index === current ? 'current' : 'after']: true
-    }));
-    let prevSlideProps = slidesProps[prev], currentSlideProps = slidesProps[current];
     let status = this.status,
         swipingUp = status === STATUS.SWIPING_UP,
         swipingDown = status === STATUS.SWIPING_DOWN,
@@ -219,6 +214,12 @@ class Deck extends Component {
         swipeCancelUp = status === STATUS.SWIPE_CANCELED_UP,
         swipeCancelDown = status === STATUS.SWIPE_CANCELED_DOWN,
         normal = status === STATUS.NORMAL;
+    let slidesProps = Children.map(slides, (slide, index) => ({
+      done: normal,
+      key: index,
+      [index < current ? 'before' : index === current ? 'current' : 'after']: true
+    }));
+    let prevSlideProps = slidesProps[prev], currentSlideProps = slidesProps[current];
     /*
     swipingUp && console.log('swipingUp');
     swipingDown && console.log('swipingDown');

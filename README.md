@@ -83,7 +83,7 @@ class Demo extends Component {
          // if (swipeDistance / width(or height for vertical)) > factor, then will switch to next slide, otherwise return to the current slide.
   loop //  scroll down on the last Deck.Slide => transition to the first Deck.Slide.(first => last as well). only work when `swipe` is set
   dura // duration for slide transition, optional. default is 1400ms
-  easeing // `function|string` tweening easing function for transition between slides. see detail below,
+  easing // `function|string` tweening easing function for transition between slides. see detail below,
   onSwitching // function(progress, deck) /*fired on every tweening transition. `deck` is the component instance of Deck, useful for accessing data like deck.status, deck.state.distance ...*/
   onSwitchDone // function(deck) /*fired when slide transition is finished*/
   >
@@ -95,10 +95,12 @@ class Demo extends Component {
 ---
 #### animation hooks
 `Deck.Slide`
-- `.slide--current` // current slide
+- `.slide--current` // current slide entered
+- `.slide--current-entering` // current slide entering
 - `.slide--before` // slides before current slide
 - `.slide--after` // slides after current slide
-- `.slide--prev` // the previous slide
+- `.slide--prev` // the previous slide left
+- `.slide--prev-leaving` // previous slide leaving
 
 use these classes hook to do css animations, for example:
 ```css

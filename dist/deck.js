@@ -148,7 +148,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.state = { current: current, prev: current + 1 };
 	    this.tween = new _tween2['default']();
-	    this.tween.ease(props.easing).duration(props.dura || 800).on('update', this.onSwitching.bind(this)).on('stop', this.onSwitchStopped.bind(this)).on('pause', this.onSwitchPaused.bind(this)).on('done', this.onSwitchDone.bind(this));
+	    this.tween.ease(props.easing).duration(props.dura || 1200).on('update', this.onSwitching.bind(this)).on('stop', this.onSwitchStopped.bind(this)).on('pause', this.onSwitchPaused.bind(this)).on('done', this.onSwitchDone.bind(this));
 	  }
 	
 	  _createClass(Deck, [{
@@ -247,12 +247,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var horizontal = _props.horizontal;
 	
 	      var prev = this.state.current,
-	          current = prev + (e.deltaY < 0 ? 1 : -1);
+	          current = prev + (e.deltaY > 0 ? 1 : -1);
 	      var slidesCount = _react.Children.count(slides);
 	      current = loop ? (current + slidesCount) % slidesCount : current;
 	
 	      if (current >= 0 && current < slidesCount) {
-	        this.status = e.deltaY < 0 ? STATUS.SWIPE_FORWARDING_DOWN : STATUS.SWIPE_FORWARDING_UP;
+	        this.status = e.deltaY > 0 ? STATUS.SWIPE_FORWARDING_DOWN : STATUS.SWIPE_FORWARDING_UP;
 	        this.setState({ current: current, prev: prev });
 	        this.startTran(0, (this.status === STATUS.SWIPE_FORWARDING_DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
 	      }
@@ -383,13 +383,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var slidesCount = _react.Children.count(slides),
 	          lastIndex = slidesCount - 1;
-	      var slidesProps = _react.Children.map(slides, function (slide, index) {
-	        return _defineProperty({
-	          key: index
-	        }, index < current ? 'before' : index === current ? 'current' : 'after', true);
-	      });
-	      var prevSlideProps = slidesProps[prev],
-	          currentSlideProps = slidesProps[current];
 	      var status = this.status,
 	          swipingUp = status === STATUS.SWIPING_UP,
 	          swipingDown = status === STATUS.SWIPING_DOWN,
@@ -400,6 +393,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	          swipeCancelUp = status === STATUS.SWIPE_CANCELED_UP,
 	          swipeCancelDown = status === STATUS.SWIPE_CANCELED_DOWN,
 	          normal = status === STATUS.NORMAL;
+	      var slidesProps = _react.Children.map(slides, function (slide, index) {
+	        return _defineProperty({
+	          done: normal,
+	          key: index
+	        }, index < current ? 'before' : index === current ? 'current' : 'after', true);
+	      });
+	      var prevSlideProps = slidesProps[prev],
+	          currentSlideProps = slidesProps[current];
 	      /*
 	      swipingUp && console.log('swipingUp');
 	      swipingDown && console.log('swipingDown');
@@ -577,7 +578,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'ease',
 	    value: function ease() {
-	      var fn = arguments.length <= 0 || arguments[0] === undefined ? _ease3['default'].outCube : arguments[0];
+	      var fn = arguments.length <= 0 || arguments[0] === undefined ? _ease3['default'].outQuint : arguments[0];
 	
 	      fn = typeof fn === 'function' ? fn : _ease3['default'][fn];
 	      if (!fn) throw new TypeError('invalid easing function');
@@ -587,7 +588,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'duration',
 	    value: function duration() {
-	      var ms = arguments.length <= 0 || arguments[0] === undefined ? 800 : arguments[0];
+	      var ms = arguments.length <= 0 || arguments[0] === undefined ? 1600 : arguments[0];
 	
 	      this._duration = ms;
 	      return this;
@@ -632,12 +633,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'iterate',
 	    value: function iterate() {
-	      var status = this._status;
-	      if (status === STATUS.PAUSED || status === STATUS.STOPPED) {
-	        _raf2['default'].cancel(this._raf);
-	        return;
-	      }
-	
 	      var lasted = Date.now() - this._latest + this._lasted;
 	      if (lasted >= this._duration) {
 	        this._lasted = this._duration;
@@ -660,9 +655,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'start',
 	    value: function start() {
-	      if (this.resume()) {
-	        this._start = this._latest;
-	      }
+	      this.resume(0) && (this._start = this._latest);
 	      return this;
 	    }
 	  }]);
@@ -1147,6 +1140,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return a * Math.pow(2, -10 * (n -= 1)) * Math.sin((n - s) * (2 * Math.PI) / p) * 0.5 + 1;
 	};
 	
+	ease.outCirc = function (n) {
+	  return Math.sqrt(1 - --n * n);
+	};
+	ease.outExpo = function (n) {
+	  return n === 1 ? n : -Math.pow(2, -10 * n) + 1;
+	};
+	
 	exports["default"] = ease;
 	module.exports = exports["default"];
 
@@ -1261,15 +1261,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var after = _props.after;
 	      var reset = _props.reset;
 	      var className = _props.className;
-	      var touching = _props.touching;
+	      var done = _props.done;
 	
-	      var rest = _objectWithoutProperties(_props, ['children', 'current', 'before', 'prev', 'after', 'reset', 'className', 'touching']);
+	      var rest = _objectWithoutProperties(_props, ['children', 'current', 'before', 'prev', 'after', 'reset', 'className', 'done']);
 	
 	      className = (0, _classnames2['default'])({
-	        'slide--current': current,
+	        'slide--current': current && done,
+	        'slide--current-entering': current && !done,
 	        'slide--before': before,
 	        'slide--after': after,
-	        'slide--prev': prev
+	        'slide--prev': prev && done,
+	        'slide--prev-leaving': prev && !done
 	      }, className, 'slide');
 	      return _react2['default'].createElement(
 	        'div',

@@ -165,4 +165,11 @@ ease.inOutElastic = function(n){
   return a * Math.pow( 2, -10 * ( n -= 1 ) ) * Math.sin( ( n - s ) * ( 2 * Math.PI ) / p ) * 0.5 + 1;
 };
 
+ease.outCirc = function (n) {
+  return Math.sqrt(1 - --n * n);
+};
+ease.outExpo = function (n) {
+  return n === 1 ? n : -Math.pow(2, -10 * n) + 1
+};
+
 export default ease;
