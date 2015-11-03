@@ -148,7 +148,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.state = { current: current, prev: current + 1 };
 	    this.tween = new _tween2['default']();
-	    this.tween.ease(props.easing).duration(props.dura || 1200).on('update', this.onSwitching.bind(this)).on('stop', this.onSwitchStopped.bind(this)).on('pause', this.onSwitchPaused.bind(this)).on('done', this.onSwitchDone.bind(this));
+	    this.tween.ease(props.easing).duration(props.dura || 1200).on('started', this.onSwitchStarted.bind(this)).on('updating', this.onSwitching.bind(this)).on('stopped', this.onSwitchStopped.bind(this)).on('paused', this.onSwitchPaused.bind(this)).on('done', this.onSwitchDone.bind(this));
 	  }
 	
 	  _createClass(Deck, [{
@@ -175,7 +175,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          prev = this.state.current;
 	      var status = this.status;
 	      if (status === STATUS.NORMAL) {
-	        this.setState({ current: current, prev: prev });
+	        this.setSlide(prev, current);
 	        if (prev !== current) {
 	          this.status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
 	          this.startTran(0, (prev < current ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
@@ -198,38 +198,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
+	    key: 'onSwitchStarted',
+	    value: function onSwitchStarted() {
+	      var callback = this.props.onSwitchStarted;
+	      callback && callback.call(this, this);
+	    }
+	  }, {
 	    key: 'onSwitching',
 	    value: function onSwitching(_ref2) {
 	      var distance = _ref2.distance;
 	      var factor = _ref2.factor;
 	
 	      this.setState({ distance: distance });
-	      if (this.props.onSwitching) {
-	        this.props.onSwitching.call(this, factor || Math.abs(distance) / (this.props.horizontal ? this.state.width : this.state.height), this);
-	      }
+	      var callback = this.props.onSwitching;
+	      callback && callback.call(this, factor || Math.abs(distance) / (this.props.horizontal ? this.state.width : this.state.height), this);
 	    }
 	  }, {
 	    key: 'onSwitchDone',
 	    value: function onSwitchDone(props) {
 	      this.status = STATUS.NORMAL;
 	      this.setState({ distance: 0 });
-	      if (this.props.onSwitchDone) {
-	        this.props.onSwitchDone.call(this, this);
-	      }
+	      var callback = this.props.onSwitchDone;
+	      callback && callback.call(this, this);
 	    }
 	  }, {
 	    key: 'onSwitchPaused',
 	    value: function onSwitchPaused(props) {
-	      if (this.props.onSwitchPaused) {
-	        this.props.onSwitchPaused.call(this, this);
-	      }
+	      var callback = this.props.onSwitchPaused;
+	      callback && callback.call(this, this);
 	    }
 	  }, {
 	    key: 'onSwitchStopped',
 	    value: function onSwitchStopped(props) {
-	      if (this.props.onSwitchStopped) {
-	        this.props.onSwitchStopped.call(this, this);
-	      }
+	      var callback = this.props.onSwitchStopped;
+	      callback && callback.call(this, this);
 	    }
 	  }, {
 	    key: 'startTran',
@@ -253,9 +255,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      if (current >= 0 && current < slidesCount) {
 	        this.status = e.deltaY > 0 ? STATUS.SWIPE_FORWARDING_DOWN : STATUS.SWIPE_FORWARDING_UP;
-	        this.setState({ current: current, prev: prev });
+	        this.setSlide(prev, current);
 	        this.startTran(0, (this.status === STATUS.SWIPE_FORWARDING_DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
 	      }
+	    }
+	  }, {
+	    key: 'setSlide',
+	    value: function setSlide(prev, current) {
+	      this.setState({ prev: prev, current: current });
+	      this._prev = prev;
+	      this._current = current;
 	    }
 	  }, {
 	    key: 'handleTouchStart',
@@ -338,7 +347,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var _ref3 = [prev, current];
 	        current = _ref3[0];
 	        prev = _ref3[1];
-	      }this.setState({ prev: prev, current: current });
+	      }this.setSlide(prev, current);
 	      this.status = !shouldForward ? distance > 0 ? STATUS.SWIPE_CANCELED_UP : STATUS.SWIPE_CANCELED_DOWN : distance > 0 ? STATUS.SWIPE_FORWARDING_UP : STATUS.SWIPE_FORWARDING_DOWN;
 	      this.startTran(distance, (shouldForward ? distance > 0 ? 1 : -1 : 0) * (horizontal ? width : height));
 	    }
@@ -600,7 +609,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (progress >= 1) {
 	        this._status = STATUS.DONE;
 	        this._curr = this._to;
-	        this.emit('update', this._curr);
+	        this.emit('updating', this._curr);
 	        this.emit('done', this._curr);
 	      } else {
 	        var from = this._from,
@@ -610,7 +619,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var prop in from) {
 	          curr[prop] = from[prop] + (to[prop] - from[prop]) * factor;
 	        }
-	        this.emit('update', curr);
+	        this.emit('updating', curr);
 	      }
 	      return this;
 	    }
@@ -619,7 +628,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function stop() {
 	      _raf2['default'].cancel(this._raf);
 	      this._status = STATUS.STOPPED;
-	      this.emit('stop', this._curr);
+	      this.emit('stopped', this._curr);
 	      return this;
 	    }
 	  }, {
@@ -627,7 +636,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function pause() {
 	      _raf2['default'].cancel(this._raf);
 	      this._status = STATUS.PAUSED;
-	      this.emit('pause', this._curr);
+	      this.emit('paused', this._curr);
 	      return this;
 	    }
 	  }, {
@@ -647,15 +656,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'resume',
 	    value: function resume(p) {
 	      if (this._status === STATUS.RUNNING) return;
-	      if (p) this._lasted = p * this._duration;
+	      if (p >= 0) {
+	        this._lasted = p * this._duration;
+	        this.emit('resumed');
+	      }
 	      this._status = STATUS.RUNNING;
 	      this._latest = Date.now();
-	      return this.iterate();
+	      this._raf = (0, _raf2['default'])(this.iterate.bind(this));
+	      return this;
 	    }
 	  }, {
 	    key: 'start',
 	    value: function start() {
-	      this.resume(0) && (this._start = this._latest);
+	      if (this.resume()) {
+	        this._start = this._latest;
+	        this.emit('started');
+	      }
 	      return this;
 	    }
 	  }]);
@@ -1215,8 +1231,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
 	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
@@ -1255,17 +1269,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function render() {
 	      var _props = this.props;
 	      var children = _props.children;
+	      var _props$tag = _props.tag;
+	      var tag = _props$tag === undefined ? 'div' : _props$tag;
 	      var current = _props.current;
 	      var before = _props.before;
 	      var prev = _props.prev;
 	      var after = _props.after;
-	      var reset = _props.reset;
 	      var className = _props.className;
 	      var done = _props.done;
 	
-	      var rest = _objectWithoutProperties(_props, ['children', 'current', 'before', 'prev', 'after', 'reset', 'className', 'done']);
+	      var props = _objectWithoutProperties(_props, ['children', 'tag', 'current', 'before', 'prev', 'after', 'className', 'done']);
 	
-	      className = (0, _classnames2['default'])({
+	      props.className = (0, _classnames2['default'])({
 	        'slide--current': current && done,
 	        'slide--current-entering': current && !done,
 	        'slide--before': before,
@@ -1273,11 +1288,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        'slide--prev': prev && done,
 	        'slide--prev-leaving': prev && !done
 	      }, className, 'slide');
-	      return _react2['default'].createElement(
-	        'div',
-	        _extends({ className: className }, rest),
-	        children
-	      );
+	      return _react2['default'].createElement(tag, props, children);
 	    }
 	  }]);
 	
@@ -1322,7 +1333,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	// module
-	exports.push([module.id, ".deck {\n  position: relative;\n  width: 100%;\n  height: 100%;\n  overflow: hidden; }\n\n.deck .slide {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  -webkit-backface-visibility: hidden;\n          backface-visibility: hidden; }\n\n.deck .slide--current {\n  -webkit-transform: translate3d(0, 0, 0);\n          transform: translate3d(0, 0, 0); }\n\n.deck--horizontal .slide--before {\n  -webkit-transform: translate3d(-100%, 0, 0);\n          transform: translate3d(-100%, 0, 0); }\n\n.deck--horizontal .slide--after {\n  -webkit-transform: translate3d(100%, 0, 0);\n          transform: translate3d(100%, 0, 0); }\n\n.deck--vertical .slide--before {\n  -webkit-transform: translate3d(0, -100%, 0);\n          transform: translate3d(0, -100%, 0); }\n\n.deck--vertical .slide--after {\n  -webkit-transform: translate3d(0, 100%, 0);\n          transform: translate3d(0, 100%, 0); }\n", ""]);
+	exports.push([module.id, ".deck {\n  position: relative;\n  width: 100%;\n  height: 100%;\n  overflow: hidden; }\n\n.deck > .slide {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  -webkit-backface-visibility: hidden;\n          backface-visibility: hidden; }\n\n.deck > .slide--current {\n  -webkit-transform: translate3d(0, 0, 0);\n          transform: translate3d(0, 0, 0); }\n\n.deck--horizontal > .slide--before {\n  -webkit-transform: translate3d(-100%, 0, 0);\n          transform: translate3d(-100%, 0, 0); }\n\n.deck--horizontal > .slide--after {\n  -webkit-transform: translate3d(100%, 0, 0);\n          transform: translate3d(100%, 0, 0); }\n\n.deck--vertical > .slide--before {\n  -webkit-transform: translate3d(0, -100%, 0);\n          transform: translate3d(0, -100%, 0); }\n\n.deck--vertical > .slide--after {\n  -webkit-transform: translate3d(0, 100%, 0);\n          transform: translate3d(0, 100%, 0); }\n", ""]);
 	
 	// exports
 

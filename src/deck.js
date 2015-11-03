@@ -51,9 +51,10 @@ class Deck extends Component {
     this.state = {current, prev: current + 1};
     this.tween = new Tween();
     this.tween.ease(props.easing).duration(props.dura || 1200)
-        .on('update', ::this.onSwitching)
-        .on('stop', ::this.onSwitchStopped)
-        .on('pause', ::this.onSwitchPaused)
+        .on('started', ::this.onSwitchStarted)
+        .on('updating', ::this.onSwitching)
+        .on('stopped', ::this.onSwitchStopped)
+        .on('paused', ::this.onSwitchPaused)
         .on('done', ::this.onSwitchDone);
   }
   componentWillMount() {
@@ -71,7 +72,7 @@ class Deck extends Component {
     let current = this.normalizeIndex(nextProps.current), prev = this.state.current;
     let status = this.status;
     if (status === STATUS.NORMAL) {
-      this.setState({current, prev});
+      this.setSlide(prev, current);
       if (prev !== current) {
         this.status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
         this.startTran(0, (prev < current ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
@@ -89,28 +90,28 @@ class Deck extends Component {
       height: dom.offsetHeight
     });
   }
+  onSwitchStarted() {
+    let callback = this.props.onSwitchStarted;
+    callback && callback.call(this, this);
+  }
   onSwitching({distance, factor}) {
     this.setState({distance});
-    if (this.props.onSwitching) {
-      this.props.onSwitching.call(this, factor || Math.abs(distance) / (this.props.horizontal ? this.state.width : this.state.height), this);
-    }
+    let callback = this.props.onSwitching;
+    callback && callback.call(this, factor || Math.abs(distance) / (this.props.horizontal ? this.state.width : this.state.height), this);
   }
   onSwitchDone(props) {
     this.status = STATUS.NORMAL;
     this.setState({distance: 0});
-    if (this.props.onSwitchDone) {
-      this.props.onSwitchDone.call(this, this);
-    }
+    let callback = this.props.onSwitchDone;
+    callback && callback.call(this, this);
   }
   onSwitchPaused(props) {
-    if (this.props.onSwitchPaused) {
-      this.props.onSwitchPaused.call(this, this);
-    }
+    let callback = this.props.onSwitchPaused;
+    callback && callback.call(this, this);
   }
   onSwitchStopped(props) {
-    if (this.props.onSwitchStopped) {
-      this.props.onSwitchStopped.call(this, this);
-    }
+    let callback = this.props.onSwitchStopped;
+    callback && callback.call(this, this);
   }
   startTran(from, to) {
     this.tween.reset({distance: from}).to({distance: to}).start();
@@ -127,9 +128,14 @@ class Deck extends Component {
 
     if (current >= 0 && current < slidesCount) {
       this.status = e.deltaY > 0 ? STATUS.SWIPE_FORWARDING_DOWN : STATUS.SWIPE_FORWARDING_UP;
-      this.setState({current, prev});
+      this.setSlide(prev, current);
       this.startTran(0, (this.status === STATUS.SWIPE_FORWARDING_DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
     }
+  }
+  setSlide(prev, current) {
+    this.setState({prev, current});
+    this._prev = prev;
+    this._current = current;
   }
 
   handleTouchStart(e) {
@@ -181,7 +187,7 @@ class Deck extends Component {
     let touch = e.changedTouches[0];
     let shouldForward = Math.abs(distance) / (horizontal ? width : height) > factor;
     if (!shouldForward) [current, prev] = [prev, current];
-    this.setState({prev, current});
+    this.setSlide(prev, current);
     this.status = !shouldForward ? (distance > 0 ? STATUS.SWIPE_CANCELED_UP : STATUS.SWIPE_CANCELED_DOWN) : (distance > 0 ? STATUS.SWIPE_FORWARDING_UP : STATUS.SWIPE_FORWARDING_DOWN);
     this.startTran(distance, (shouldForward ? (distance > 0 ? 1 : -1) : 0) * (horizontal ? width : height));
   }

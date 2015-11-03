@@ -1,6 +1,6 @@
 {
   "name": "react-slide-deck",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "react slide deck, carousel, page scroll, swipe",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

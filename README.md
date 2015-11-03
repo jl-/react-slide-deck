@@ -86,6 +86,7 @@ class Demo extends Component {
   easing // `function|string` tweening easing function for transition between slides. see detail below,
   onSwitching // function(progress, deck) /*fired on every tweening transition. `deck` is the component instance of Deck, useful for accessing data like deck.status, deck.state.distance ...*/
   onSwitchDone // function(deck) /*fired when slide transition is finished*/
+  onSwitchStarted // function(deck) /*fired before a tween transition started*/
   >
   <Deck.Slide> content </Deck.Slide>
   <Deck.Slide> content2 </Deck.Slide>

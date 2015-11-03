@@ -54,7 +54,7 @@ class Tween extends FlatEvent {
     if (progress >= 1) {
       this._status = STATUS.DONE;
       this._curr = this._to;
-      this.emit('update', this._curr);
+      this.emit('updating', this._curr);
       this.emit('done', this._curr);
     } else {
       let from = this._from, to = this._to, curr = this._curr = {};
@@ -62,20 +62,20 @@ class Tween extends FlatEvent {
       for (let prop in from) {
         curr[prop] = from[prop] + (to[prop] - from[prop]) * factor;
       }
-      this.emit('update', curr);
+      this.emit('updating', curr);
     }
     return this;
   }
   stop() {
     raf.cancel(this._raf);
     this._status = STATUS.STOPPED;
-    this.emit('stop', this._curr);
+    this.emit('stopped', this._curr);
     return this;
   }
   pause() {
     raf.cancel(this._raf);
     this._status = STATUS.PAUSED;
-    this.emit('pause', this._curr);
+    this.emit('paused', this._curr);
     return this;
   }
   iterate() {
@@ -91,13 +91,20 @@ class Tween extends FlatEvent {
   }
   resume(p) {
     if (this._status === STATUS.RUNNING) return;
-    if (p) this._lasted = p * this._duration;
+    if (p >= 0) {
+      this._lasted = p * this._duration;
+      this.emit('resumed');
+    }
     this._status = STATUS.RUNNING;
     this._latest = Date.now();
-    return this.iterate();
+    this._raf = raf(::this.iterate);
+    return this;
   }
   start() {
-    this.resume(0) && (this._start = this._latest);
+    if (this.resume()) {
+      this._start = this._latest;
+      this.emit('started');
+    }
     return this;
   }
 }
