@@ -22,6 +22,7 @@ import React, { Component, Children } from 'react';
 import ReactDOM from 'react-dom';
 import Tween from './tween';
 import cns from 'classnames';
+import raf from 'raf';
 
 import Slide from './slide';
 
@@ -48,7 +49,7 @@ class Deck extends Component {
   constructor(props, context) {
     super(props, context);
     let { current } = props;
-    this.state = {current, prev: current + 1};
+    this.state = {current, prev: current + 1, status: STATUS.NORMAL};
     this.tween = new Tween();
     this.tween.ease(props.easing).duration(props.dura || 1200)
         .on('started', ::this.onSwitchStarted)
@@ -57,24 +58,22 @@ class Deck extends Component {
         .on('paused', ::this.onSwitchPaused)
         .on('done', ::this.onSwitchDone);
   }
-  componentWillMount() {
-    this.status = STATUS.NORMAL;
-  }
   componentDidMount() {
-    this.dimension();
-    window.addEventListener('resize', ::this.dimension);
+    this.calcDimension();
+    window.addEventListener('resize', ::this.calcDimension);
   }
   shouldComponentUpdate(nextProps, nextState) {
-    if (this.status === STATUS.SWIPE_STARTED) return false;
+    if (nextState.status === STATUS.SWIPE_STARTED) return false;
     return true;
   }
   componentWillReceiveProps(nextProps) {
-    let current = this.normalizeIndex(nextProps.current), prev = this.state.current;
-    let status = this.status;
+    let status = this.state.status;
     if (status === STATUS.NORMAL) {
-      this.setSlide(prev, current);
+      let prev = this.state.current;
+      let current = this.normalizeIndex(nextProps.current);
       if (prev !== current) {
-        this.status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
+        status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
+        this.setState({prev, current, status});
         this.startTran(0, (prev < current ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
       }
     }
@@ -83,7 +82,7 @@ class Deck extends Component {
     let slidesCount = Children.count(this.props.children);
     return (index + slidesCount) % slidesCount;
   }
-  dimension() {
+  calcDimension() {
     let dom = ReactDOM.findDOMNode(this);
     this.setState({
       width: dom.offsetWidth,
@@ -92,26 +91,25 @@ class Deck extends Component {
   }
   onSwitchStarted() {
     let callback = this.props.onSwitchStarted;
-    callback && callback.call(this, this);
+    callback && raf(() => callback.call(this, this.state));
   }
   onSwitching({distance, factor}) {
     this.setState({distance});
     let callback = this.props.onSwitching;
-    callback && callback.call(this, factor || Math.abs(distance) / (this.props.horizontal ? this.state.width : this.state.height), this);
+    callback && raf(() => callback.call(this, factor || Math.abs(distance) / (this.props.horizontal ? this.state.width : this.state.height), this));
   }
   onSwitchDone(props) {
-    this.status = STATUS.NORMAL;
-    this.setState({distance: 0});
+    this.setState({distance: 0, status: STATUS.NORMAL});
     let callback = this.props.onSwitchDone;
-    callback && callback.call(this, this);
+    callback && raf(() => callback.call(this, this.state));
   }
   onSwitchPaused(props) {
     let callback = this.props.onSwitchPaused;
-    callback && callback.call(this, this);
+    callback && callback.call(this, this.state);
   }
   onSwitchStopped(props) {
     let callback = this.props.onSwitchStopped;
-    callback && callback.call(this, this);
+    callback && callback.call(this, this.state);
   }
   startTran(from, to) {
     this.tween.reset({distance: from}).to({distance: to}).start();
@@ -119,7 +117,8 @@ class Deck extends Component {
 
 
   handleWheel(e) {
-    if (this.status !== STATUS.NORMAL || e.deltaY === 0) return;
+    let status = this.state.status;
+    if (status !== STATUS.NORMAL || e.deltaY === 0) return;
 
     let { children: slides, loop, horizontal } = this.props;
     let prev = this.state.current, current = prev + (e.deltaY > 0 ? 1 : -1);
@@ -127,29 +126,23 @@ class Deck extends Component {
     current = loop ? (current + slidesCount) % slidesCount : current;
 
     if (current >= 0 && current < slidesCount) {
-      this.status = e.deltaY > 0 ? STATUS.SWIPE_FORWARDING_DOWN : STATUS.SWIPE_FORWARDING_UP;
-      this.setSlide(prev, current);
-      this.startTran(0, (this.status === STATUS.SWIPE_FORWARDING_DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
+      status = e.deltaY > 0 ? STATUS.SWIPE_FORWARDING_DOWN : STATUS.SWIPE_FORWARDING_UP;
+      this.setState({prev, current, status});
+      this.startTran(0, (status === STATUS.SWIPE_FORWARDING_DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
     }
-  }
-  setSlide(prev, current) {
-    this.setState({prev, current});
-    this._prev = prev;
-    this._current = current;
   }
 
   handleTouchStart(e) {
-    let status = this.status;
+    let status = this.state.status;
     if (status === STATUS.SWIPE_FORWARDING_UP || status === STATUS.SWIPE_FORWARDING_DOWN) return;
     this.tween.stop();
     let touch = e.changedTouches[0];
     let x = this.props.horizontal ? touch.clientX : 0, y = this.props.vertical ? touch.clientY : 0;
-    this.setState({x, y});
-    this.status = STATUS.SWIPE_STARTED;
+    this.setState({x, y, status: STATUS.SWIPE_STARTED});
   }
   handleTouchMove(e) {
     e.preventDefault();
-    let status = this.status;
+    let status = this.state.status;
     if (status !== STATUS.SWIPE_STARTED && status !== STATUS.SWIPING_UP && status !== STATUS.SWIPING_DOWN) return;
     let touch = e.changedTouches[0];
     let { prev, current, x, y, width, height, distance = 0 } = this.state;
@@ -173,12 +166,13 @@ class Deck extends Component {
       return;
     }
 
-    this.status = distance < 0 ? STATUS.SWIPING_DOWN : STATUS.SWIPING_UP;
-    this.setState({current: prev});
+    status = distance < 0 ? STATUS.SWIPING_DOWN : STATUS.SWIPING_UP;
+    this.setState({current: prev, status});
     this.onSwitching({distance, factor: Math.abs(distance) / (horizontal ? width : height)});
   }
   handleTouchEnd(e) {
-    if (this.status !== STATUS.SWIPING_UP && this.status !== STATUS.SWIPING_DOWN) {
+    let status = this.state.status;
+    if (status !== STATUS.SWIPING_UP && status !== STATUS.SWIPING_DOWN) {
       //this.status = STATUS.NORMAL;
       return;
     }
@@ -187,18 +181,17 @@ class Deck extends Component {
     let touch = e.changedTouches[0];
     let shouldForward = Math.abs(distance) / (horizontal ? width : height) > factor;
     if (!shouldForward) [current, prev] = [prev, current];
-    this.setSlide(prev, current);
-    this.status = !shouldForward ? (distance > 0 ? STATUS.SWIPE_CANCELED_UP : STATUS.SWIPE_CANCELED_DOWN) : (distance > 0 ? STATUS.SWIPE_FORWARDING_UP : STATUS.SWIPE_FORWARDING_DOWN);
+    status = !shouldForward ? (distance > 0 ? STATUS.SWIPE_CANCELED_UP : STATUS.SWIPE_CANCELED_DOWN) : (distance > 0 ? STATUS.SWIPE_FORWARDING_UP : STATUS.SWIPE_FORWARDING_DOWN);
+    this.setState({prev, current, status});
     this.startTran(distance, (shouldForward ? (distance > 0 ? 1 : -1) : 0) * (horizontal ? width : height));
   }
   handleTouchCancel(e) {
-    this.status = STATUS.SWIPE_CANCELED;
+    this.setState({status: STATUS.SWIPE_CANCELED});
   }
 
   setSlideStyle(factor) {
-    let { prev, current, distance, width, height } = this.state;
+    let { prev, current, status, distance, width, height } = this.state;
     let { horizontal, vertical, loop, swipe } = this.props;
-    let status = this.status;
     let style = {},
         dx = horizontal ? distance + factor * width : 0,
         dy = vertical ? distance + factor * height : 0;
@@ -208,10 +201,9 @@ class Deck extends Component {
 
   updateSlides() {
     let { children: slides, horizontal, vertical, loop } = this.props;
-    let { prev, current } = this.state;
+    let { prev, current, status } = this.state;
     let slidesCount = Children.count(slides), lastIndex = slidesCount - 1;
-    let status = this.status,
-        swipingUp = status === STATUS.SWIPING_UP,
+    let swipingUp = status === STATUS.SWIPING_UP,
         swipingDown = status === STATUS.SWIPING_DOWN,
         forwardingUp = status === STATUS.FORWARDING_UP,
         forwardingDown = status === STATUS.FORWARDING_DOWN,
@@ -241,7 +233,7 @@ class Deck extends Component {
     loop = loop && (swipingUp || swipingDown || swipeForwardingUp || swipeForwardingDown || swipeCancelUp || swipeCancelDown);
     currentSlideProps.current = prevSlideProps.prev = true;
 
-    if (prev !== current && this.status !== STATUS.NORMAL) {
+    if (prev !== current && status !== STATUS.NORMAL) {
       let prevFactor = 0;
       let currentFactor = current > prev ? 1 : -1;
       if (swipeCancelDown) {
@@ -269,12 +261,12 @@ class Deck extends Component {
   }
 
   render() {
-    let { children, current, vertical, horizontal, loop, swipe, className, ...rest } = this.props;
+    let { children, current, vertical, horizontal, loop, swipe, className, ...props } = this.props;
     if (swipe) {
-      rest.onWheel = ::this.handleWheel;
-      rest.onTouchStart = ::this.handleTouchStart;
-      rest.onTouchMove = ::this.handleTouchMove;
-      rest.onTouchEnd = ::this.handleTouchEnd;
+      props.onWheel = ::this.handleWheel;
+      props.onTouchStart = ::this.handleTouchStart;
+      props.onTouchMove = ::this.handleTouchMove;
+      props.onTouchEnd = ::this.handleTouchEnd;
     }
     className = cns({
       [className]: !!className,
@@ -282,7 +274,7 @@ class Deck extends Component {
       'deck--vertical': vertical
     }, 'deck');
     return (
-      <div className={className} onResize={::this.dimension}  {...rest}>
+      <div className={className} {...props}>
         {this.updateSlides()}
       </div>
     );
@@ -292,4 +284,3 @@ class Deck extends Component {
 Deck.STATUS = STATUS;
 Deck.Slide = Slide;
 export default Deck;
-
