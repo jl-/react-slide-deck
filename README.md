@@ -35,18 +35,20 @@ class Demo extends Component {
       current: index
     });
   }
+  onSwitchStarted({prev: current, current: next}) {
+    console.log(`started to switch from ${current} to ${next}`);
+  }
   onSwitching(progress, deck) {
-    console.log('switching callback');
+    console.log(`switching on progress.`);
     console.log(progress, deck.state.distance);
   }
-  onSwitchDone(deck) {
-    console.log('switchDone callback');
-    console.log(deck);
+  onSwitchDone({prev, current}) {
+    console.log(`switch finished, current slide index: ${current}`);
   }
   render() {
     return (
       <div>
-        <Deck {...this.state} onSwitching={this.onSwitching} onSwitchDone={this.onSwitchDone}>
+        <Deck {...this.state} onSwitching={::this.onSwitching} onSwitchDone={::this.onSwitchDone}>
           <Deck.Slide className='bg-black'>
           1
           </Deck.Slide>
@@ -86,7 +88,7 @@ class Demo extends Component {
   easing // `function|string` tweening easing function for transition between slides. see detail below,
   onSwitching // function(progress, deck) /*fired on every tweening transition. `deck` is the component instance of Deck, useful for accessing data like deck.status, deck.state.distance ...*/
   onSwitchDone // function({prev, current}) /*fired when slide transition is finished*/
-  onSwitchStarted // function({prev/*the current slide*/, current/*next slide*/}) /*fired before a tween transition started*/
+  onSwitchStarted // function({prev:current, current:next}) /*fired before a tween transition started*/
   >
   <Deck.Slide> content </Deck.Slide>
   <Deck.Slide> content2 </Deck.Slide>
