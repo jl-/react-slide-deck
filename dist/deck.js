@@ -74,6 +74,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * </Deck>
 	 *
 	 */
+	
 	'use strict';
 	
 	Object.defineProperty(exports, '__esModule', {
@@ -127,6 +128,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var SWIPE_DURA = 1400; // default transition duration
 	var SWIPE_ONSET = 6;
 	var SWIPE_FACTOR = 0.4;
+	var CURRENT_SLIDE_REF = 'CURRENT_SLIDE';
 	
 	var STATUS = {
 	  NORMAL: 0,
@@ -158,8 +160,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  _createClass(Deck, [{
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
+	      this.calcDimension = this.calcDimension.bind(this);
 	      this.calcDimension();
-	      window.addEventListener('resize', this.calcDimension.bind(this));
+	      window.addEventListener('resize', this.calcDimension);
+	    }
+	  }, {
+	    key: 'componentWillUnmount',
+	    value: function componentWillUnmount() {
+	      window.removeEventListener('resize', this.calcDimension);
 	    }
 	  }, {
 	    key: 'shouldComponentUpdate',
@@ -175,9 +183,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var prev = this.state.current;
 	        var current = this.normalizeIndex(nextProps.current);
 	        if (prev !== current) {
-	          status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
+	          if (nextProps.loop && nextProps.direction) {
+	            status = nextProps.direction === 'up' ? STATUS.FORWARDING_UP : STATUS.FORWARDING_DOWN;
+	          } else {
+	            status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
+	          }
 	          this.setState({ prev: prev, current: current, status: status });
-	          this.startTran(0, (prev < current ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
+	          this.startTran(0, (status === STATUS.FORWARDING_DOWN ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
 	        }
 	      }
 	    }
@@ -249,10 +261,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.tween.reset({ distance: from }).to({ distance: to }).start();
 	    }
 	  }, {
+	    key: 'isCurrentSlideScrolling',
+	    value: function isCurrentSlideScrolling(delta) {
+	      var currentSlideDom = _reactDom2['default'].findDOMNode(this.refs[CURRENT_SLIDE_REF]);
+	      var offsetWidth = currentSlideDom.offsetWidth;
+	      var scrollLeft = currentSlideDom.scrollLeft;
+	      var scrollWidth = currentSlideDom.scrollWidth;
+	      var offsetHeight = currentSlideDom.offsetHeight;
+	      var scrollTop = currentSlideDom.scrollTop;
+	      var scrollHeight = currentSlideDom.scrollHeight;
+	
+	      var sizes = this.props.horizontal ? [offsetWidth, scrollLeft, scrollWidth] : [offsetHeight, scrollTop, scrollHeight];
+	
+	      if (delta > 0 && sizes[0] + sizes[1] < sizes[2]) return true;
+	      if (delta < 0 && sizes[1] > 0) return true;
+	
+	      return false;
+	    }
+	  }, {
 	    key: 'handleWheel',
 	    value: function handleWheel(e) {
 	      var status = this.state.status;
-	      if (status !== STATUS.NORMAL || e.deltaY === 0) return;
+	      if (status !== STATUS.NORMAL || e.deltaY === 0 || this.isCurrentSlideScrolling(e.deltaY)) return;
 	
 	      var _props = this.props;
 	      var slides = _props.children;
@@ -271,28 +301,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	  }, {
-	    key: 'handleTouchStart',
-	    value: function handleTouchStart(e) {
+	    key: 'handleSwipeStart',
+	    value: function handleSwipeStart(_ref3) {
+	      var x = _ref3.x;
+	      var y = _ref3.y;
+	
 	      var status = this.state.status;
 	      if (status === STATUS.SWIPE_FORWARDING_UP || status === STATUS.SWIPE_FORWARDING_DOWN) return;
 	      this.tween.stop();
-	      var touch = e.changedTouches[0];
-	      var x = this.props.horizontal ? touch.clientX : 0,
-	          y = this.props.vertical ? touch.clientY : 0;
 	      this.setState({ x: x, y: y, status: STATUS.SWIPE_STARTED });
 	    }
 	  }, {
-	    key: 'handleTouchMove',
-	    value: function handleTouchMove(e) {
-	      e.preventDefault();
+	    key: 'handleSwipeMove',
+	    value: function handleSwipeMove(_ref4) {
+	      var x = _ref4.x;
+	      var y = _ref4.y;
+	
 	      var status = this.state.status;
 	      if (status !== STATUS.SWIPE_STARTED && status !== STATUS.SWIPING_UP && status !== STATUS.SWIPING_DOWN) return;
-	      var touch = e.changedTouches[0];
 	      var _state = this.state;
 	      var prev = _state.prev;
 	      var current = _state.current;
-	      var x = _state.x;
-	      var y = _state.y;
+	      var oldX = _state.x;
+	      var oldY = _state.y;
 	      var width = _state.width;
 	      var height = _state.height;
 	      var _state$distance = _state.distance;
@@ -301,15 +332,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var horizontal = _props2.horizontal;
 	      var vertical = _props2.vertical;
 	
+	      // swipe started during swipeCanceled tweening
 	      if (status === STATUS.SWIPE_STARTED && distance !== 0) {
-	        x = horizontal ? touch.clientX - distance : 0;
-	        y = vertical ? touch.clientY - distance : 0;
-	        this.setState({ x: x, y: y });
+	        horizontal ? oldX = x - distance : oldY = y - distance;
+	        this.setState({ x: oldX, y: oldY });
 	      }
-	      var dx = this.props.horizontal ? touch.clientX - x : 0,
-	          dy = this.props.vertical ? touch.clientY - y : 0;
+	      distance = horizontal ? x - oldX : y - oldY;
+	
 	      var slidesCount = _react.Children.count(this.props.children);
-	      distance = dx + dy;
 	      prev = (status === STATUS.SWIPE_STARTED ? current : prev) + (distance > 0 ? -1 : 1);
 	      prev = this.props.loop ? (prev + slidesCount) % slidesCount : prev;
 	      if (status === STATUS.SWIPE_STARTED) {
@@ -325,13 +355,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.onSwitching({ distance: distance, factor: Math.abs(distance) / (horizontal ? width : height) });
 	    }
 	  }, {
-	    key: 'handleTouchEnd',
-	    value: function handleTouchEnd(e) {
+	    key: 'handleSwipeEnd',
+	    value: function handleSwipeEnd() {
 	      var status = this.state.status;
-	      if (status !== STATUS.SWIPING_UP && status !== STATUS.SWIPING_DOWN) {
-	        //this.status = STATUS.NORMAL;
-	        return;
-	      }
+	      if (status !== STATUS.SWIPING_UP && status !== STATUS.SWIPING_DOWN) return;
+	
 	      var _props3 = this.props;
 	      var horizontal = _props3.horizontal;
 	      var vertical = _props3.vertical;
@@ -344,21 +372,46 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var height = _state2.height;
 	      var distance = _state2.distance;
 	
-	      var touch = e.changedTouches[0];
 	      var shouldForward = Math.abs(distance) / (horizontal ? width : height) > factor;
+	
 	      if (!shouldForward) {
 	        ;
-	        var _ref3 = [prev, current];
-	        current = _ref3[0];
-	        prev = _ref3[1];
+	        var _ref5 = [prev, current];
+	        current = _ref5[0];
+	        prev = _ref5[1];
 	      }status = !shouldForward ? distance > 0 ? STATUS.SWIPE_CANCELED_UP : STATUS.SWIPE_CANCELED_DOWN : distance > 0 ? STATUS.SWIPE_FORWARDING_UP : STATUS.SWIPE_FORWARDING_DOWN;
 	      this.setState({ prev: prev, current: current, status: status });
 	      this.startTran(distance, (shouldForward ? distance > 0 ? 1 : -1 : 0) * (horizontal ? width : height));
 	    }
 	  }, {
+	    key: 'handleSwipeCancel',
+	    value: function handleSwipeCancel() {
+	      this.setState({ status: STATUS.SWIPE_CANCELED });
+	    }
+	
+	    // For touch events
+	  }, {
+	    key: 'handleTouchStart',
+	    value: function handleTouchStart(e) {
+	      var touch = e.changedTouches[0];
+	      this.handleSwipeStart({ x: touch.clientX, y: touch.clientY });
+	    }
+	  }, {
+	    key: 'handleTouchMove',
+	    value: function handleTouchMove(e) {
+	      e.preventDefault();
+	      var touch = e.changedTouches[0];
+	      this.handleSwipeMove({ x: touch.clientX, y: touch.clientY });
+	    }
+	  }, {
+	    key: 'handleTouchEnd',
+	    value: function handleTouchEnd(e) {
+	      this.handleSwipeEnd();
+	    }
+	  }, {
 	    key: 'handleTouchCancel',
 	    value: function handleTouchCancel(e) {
-	      this.setState({ status: STATUS.SWIPE_CANCELED });
+	      this.handleSwipeCancel();
 	    }
 	  }, {
 	    key: 'setSlideStyle',
@@ -415,18 +468,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var prevSlideProps = slidesProps[prev],
 	          currentSlideProps = slidesProps[current];
 	      /*
-	      swipingUp && console.log('swipingUp');
-	      swipingDown && console.log('swipingDown');
-	      forwardingUp && console.log('forwardingUp');
-	      forwardingDown && console.log('forwardingDown');
-	      swipeForwardingUp && console.log('swipeForwardingUp');
-	      swipeForwardingDown && console.log('swipeForwardingDown');
-	      swipeCancelUp && console.log('swipeCancelUp');
-	      swipeCancelDown && console.log('swipeCancelDown');
-	      normal && console.log('normal');
-	      */
+	       swipingUp && console.log('swipingUp');
+	       swipingDown && console.log('swipingDown');
+	       forwardingUp && console.log('forwardingUp');
+	       forwardingDown && console.log('forwardingDown');
+	       swipeForwardingUp && console.log('swipeForwardingUp');
+	       swipeForwardingDown && console.log('swipeForwardingDown');
+	       swipeCancelUp && console.log('swipeCancelUp');
+	       swipeCancelDown && console.log('swipeCancelDown');
+	       normal && console.log('normal');
+	       */
 	
-	      loop = loop && (swipingUp || swipingDown || swipeForwardingUp || swipeForwardingDown || swipeCancelUp || swipeCancelDown);
+	      //loop = loop && (swipingUp || swipingDown || swipeForwardingUp || swipeForwardingDown || swipeCancelUp || swipeCancelDown);
 	      currentSlideProps.current = prevSlideProps.prev = true;
 	
 	      if (prev !== current && status !== STATUS.NORMAL) {
@@ -448,11 +501,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	            currentFactor = 1;
 	          } else if (swipeForwardingUp) {
 	            currentFactor = -1;
+	          } else if (forwardingUp) {
+	            currentFactor = -1;
+	          } else if (forwardingDown) {
+	            currentFactor = 1;
 	          }
 	        }
 	        prevSlideProps.style = this.setSlideStyle(prevFactor);
 	        currentSlideProps.style = this.setSlideStyle(currentFactor);
 	      }
+	      currentSlideProps.ref = CURRENT_SLIDE_REF;
 	      return slidesProps.map(function (props, index) {
 	        return _react2['default'].cloneElement(slides[index], props);
 	      });
@@ -1337,7 +1395,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	// module
-	exports.push([module.id, ".deck {\n  position: relative;\n  width: 100%;\n  height: 100%;\n  overflow: hidden; }\n\n.deck > .slide {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  -webkit-backface-visibility: hidden;\n          backface-visibility: hidden; }\n\n.deck > .slide--current {\n  -webkit-transform: translate3d(0, 0, 0);\n          transform: translate3d(0, 0, 0); }\n\n.deck--horizontal > .slide--before {\n  -webkit-transform: translate3d(-100%, 0, 0);\n          transform: translate3d(-100%, 0, 0); }\n\n.deck--horizontal > .slide--after {\n  -webkit-transform: translate3d(100%, 0, 0);\n          transform: translate3d(100%, 0, 0); }\n\n.deck--vertical > .slide--before {\n  -webkit-transform: translate3d(0, -100%, 0);\n          transform: translate3d(0, -100%, 0); }\n\n.deck--vertical > .slide--after {\n  -webkit-transform: translate3d(0, 100%, 0);\n          transform: translate3d(0, 100%, 0); }\n", ""]);
+	exports.push([module.id, ".deck {\n  position: relative;\n  width: 100%;\n  height: 100%;\n  overflow: hidden; }\n\n.deck > .slide {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  -webkit-backface-visibility: hidden;\n          backface-visibility: hidden; }\n\n.deck > .slide--current {\n  -webkit-transform: translate3d(0, 0, 0);\n          transform: translate3d(0, 0, 0);\n  overflow: auto; }\n\n.deck--horizontal > .slide--before {\n  -webkit-transform: translate3d(-100%, 0, 0);\n          transform: translate3d(-100%, 0, 0); }\n\n.deck--horizontal > .slide--after {\n  -webkit-transform: translate3d(100%, 0, 0);\n          transform: translate3d(100%, 0, 0); }\n\n.deck--vertical > .slide--before {\n  -webkit-transform: translate3d(0, -100%, 0);\n          transform: translate3d(0, -100%, 0); }\n\n.deck--vertical > .slide--after {\n  -webkit-transform: translate3d(0, 100%, 0);\n          transform: translate3d(0, 100%, 0); }\n", ""]);
 	
 	// exports
 

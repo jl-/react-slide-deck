@@ -18,6 +18,7 @@
  * </Deck>
  *
  */
+
 import React, { Component, Children } from 'react';
 import ReactDOM from 'react-dom';
 import Tween from './tween';
@@ -31,6 +32,7 @@ import styles from './style.scss';
 const SWIPE_DURA = 1400; // default transition duration
 const SWIPE_ONSET = 6;
 const SWIPE_FACTOR = 0.4;
+const CURRENT_SLIDE_REF = 'CURRENT_SLIDE';
 
 const STATUS = {
   NORMAL: 0,
@@ -49,18 +51,22 @@ class Deck extends Component {
   constructor(props, context) {
     super(props, context);
     let { current } = props;
-    this.state = {current, prev: current + 1, status: STATUS.NORMAL};
+    this.state = { current, prev: current + 1, status: STATUS.NORMAL };
     this.tween = new Tween();
     this.tween.ease(props.easing).duration(props.dura || 1200)
-        .on('started', ::this.onSwitchStarted)
-        .on('updating', ::this.onSwitching)
-        .on('stopped', ::this.onSwitchStopped)
-        .on('paused', ::this.onSwitchPaused)
-        .on('done', ::this.onSwitchDone);
+    .on('started', ::this.onSwitchStarted)
+    .on('updating', ::this.onSwitching)
+    .on('stopped', ::this.onSwitchStopped)
+    .on('paused', ::this.onSwitchPaused)
+    .on('done', ::this.onSwitchDone);
   }
   componentDidMount() {
+    this.calcDimension = ::this.calcDimension;
     this.calcDimension();
-    window.addEventListener('resize', ::this.calcDimension);
+    window.addEventListener('resize', this.calcDimension);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.calcDimension)
   }
   shouldComponentUpdate(nextProps, nextState) {
     if (nextState.status === STATUS.SWIPE_STARTED) return false;
@@ -72,9 +78,13 @@ class Deck extends Component {
       let prev = this.state.current;
       let current = this.normalizeIndex(nextProps.current);
       if (prev !== current) {
-        status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
-        this.setState({prev, current, status});
-        this.startTran(0, (prev < current ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
+        if (nextProps.loop && nextProps.direction) {
+          status = nextProps.direction === 'up' ? STATUS.FORWARDING_UP : STATUS.FORWARDING_DOWN;
+        } else {
+          status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
+        }
+        this.setState({ prev, current, status });
+        this.startTran(0, (status === STATUS.FORWARDING_DOWN ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
       }
     }
   }
@@ -93,8 +103,8 @@ class Deck extends Component {
     let callback = this.props.onSwitchStarted;
     callback && raf(() => callback.call(this, this.state));
   }
-  onSwitching({distance, factor}) {
-    this.setState({distance});
+  onSwitching({ distance, factor }) {
+    this.setState({ distance });
     let callback = this.props.onSwitching;
     callback && raf(() => callback.call(this, factor || Math.abs(distance) / (this.props.horizontal ? this.state.width : this.state.height), this));
   }
@@ -115,10 +125,20 @@ class Deck extends Component {
     this.tween.reset({distance: from}).to({distance: to}).start();
   }
 
+  isCurrentSlideScrolling(delta) {
+    const currentSlideDom = ReactDOM.findDOMNode(this.refs[CURRENT_SLIDE_REF]);
+    const { offsetWidth, scrollLeft, scrollWidth, offsetHeight, scrollTop, scrollHeight } = currentSlideDom;
+    const sizes = this.props.horizontal ? [offsetWidth, scrollLeft, scrollWidth] : [offsetHeight, scrollTop, scrollHeight];
+
+    if (delta > 0 && sizes[0] + sizes[1] < sizes[2]) return true;
+    if (delta < 0 && sizes[1] > 0) return true;
+
+    return false;
+  }
 
   handleWheel(e) {
     let status = this.state.status;
-    if (status !== STATUS.NORMAL || e.deltaY === 0) return;
+    if (status !== STATUS.NORMAL || e.deltaY === 0 || this.isCurrentSlideScrolling(e.deltaY)) return;
 
     let { children: slides, loop, horizontal } = this.props;
     let prev = this.state.current, current = prev + (e.deltaY > 0 ? 1 : -1);
@@ -127,74 +147,85 @@ class Deck extends Component {
 
     if (current >= 0 && current < slidesCount) {
       status = e.deltaY > 0 ? STATUS.SWIPE_FORWARDING_DOWN : STATUS.SWIPE_FORWARDING_UP;
-      this.setState({prev, current, status});
+      this.setState({ prev, current, status });
       this.startTran(0, (status === STATUS.SWIPE_FORWARDING_DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
     }
   }
 
-  handleTouchStart(e) {
+  handleSwipeStart({ x, y }) {
     let status = this.state.status;
     if (status === STATUS.SWIPE_FORWARDING_UP || status === STATUS.SWIPE_FORWARDING_DOWN) return;
     this.tween.stop();
-    let touch = e.changedTouches[0];
-    let x = this.props.horizontal ? touch.clientX : 0, y = this.props.vertical ? touch.clientY : 0;
-    this.setState({x, y, status: STATUS.SWIPE_STARTED});
+    this.setState({ x, y, status: STATUS.SWIPE_STARTED });
   }
-  handleTouchMove(e) {
-    e.preventDefault();
+  handleSwipeMove({ x, y }) {
     let status = this.state.status;
     if (status !== STATUS.SWIPE_STARTED && status !== STATUS.SWIPING_UP && status !== STATUS.SWIPING_DOWN) return;
-    let touch = e.changedTouches[0];
-    let { prev, current, x, y, width, height, distance = 0 } = this.state;
+    let { prev, current, x: oldX, y: oldY, width, height, distance = 0 } = this.state;
     let { horizontal, vertical } = this.props;
+
+    // swipe started during swipeCanceled tweening
     if (status === STATUS.SWIPE_STARTED && distance !== 0) {
-      x = horizontal ? touch.clientX - distance : 0;
-      y = vertical ? touch.clientY - distance : 0;
-      this.setState({x, y});
+      horizontal ? (oldX = x - distance) : (oldY = y - distance);
+      this.setState({ x: oldX, y: oldY });
     }
-    let dx = this.props.horizontal ? touch.clientX - x : 0,
-        dy = this.props.vertical ? touch.clientY - y : 0;
+    distance = horizontal ? x - oldX : y - oldY;
+
     let slidesCount = Children.count(this.props.children);
-    distance = dx + dy;
     prev = (status === STATUS.SWIPE_STARTED ? current : prev) + (distance > 0 ? -1 : 1);
     prev = this.props.loop ? (prev + slidesCount) % slidesCount : prev;
     if (status === STATUS.SWIPE_STARTED) {
-      this.setState({prev: current});
+      this.setState({ prev: current });
     }
     if (prev < 0 || prev >= slidesCount) {
-      this.onSwitching({distance: 0});
+      this.onSwitching({ distance: 0 });
       return;
     }
 
     status = distance < 0 ? STATUS.SWIPING_DOWN : STATUS.SWIPING_UP;
-    this.setState({current: prev, status});
-    this.onSwitching({distance, factor: Math.abs(distance) / (horizontal ? width : height)});
+    this.setState({ current: prev, status });
+    this.onSwitching({ distance, factor: Math.abs(distance) / (horizontal ? width : height) });
   }
-  handleTouchEnd(e) {
+  handleSwipeEnd() {
     let status = this.state.status;
-    if (status !== STATUS.SWIPING_UP && status !== STATUS.SWIPING_DOWN) {
-      //this.status = STATUS.NORMAL;
-      return;
-    }
+    if (status !== STATUS.SWIPING_UP && status !== STATUS.SWIPING_DOWN) return;
+
     let { horizontal, vertical, factor = SWIPE_FACTOR } = this.props;
     let { prev, current, width, height, distance } = this.state;
-    let touch = e.changedTouches[0];
     let shouldForward = Math.abs(distance) / (horizontal ? width : height) > factor;
+
     if (!shouldForward) [current, prev] = [prev, current];
     status = !shouldForward ? (distance > 0 ? STATUS.SWIPE_CANCELED_UP : STATUS.SWIPE_CANCELED_DOWN) : (distance > 0 ? STATUS.SWIPE_FORWARDING_UP : STATUS.SWIPE_FORWARDING_DOWN);
-    this.setState({prev, current, status});
+    this.setState({ prev, current, status });
     this.startTran(distance, (shouldForward ? (distance > 0 ? 1 : -1) : 0) * (horizontal ? width : height));
   }
+  handleSwipeCancel() {
+    this.setState({ status: STATUS.SWIPE_CANCELED });
+  }
+
+  // For touch events
+  handleTouchStart(e) {
+    const touch = e.changedTouches[0];
+    this.handleSwipeStart({ x: touch.clientX, y: touch.clientY });
+  }
+  handleTouchMove(e) {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    this.handleSwipeMove({ x: touch.clientX, y: touch.clientY });
+  }
+  handleTouchEnd(e) {
+    this.handleSwipeEnd();
+  }
   handleTouchCancel(e) {
-    this.setState({status: STATUS.SWIPE_CANCELED});
+    this.handleSwipeCancel();
   }
 
   setSlideStyle(factor) {
     let { prev, current, status, distance, width, height } = this.state;
     let { horizontal, vertical, loop, swipe } = this.props;
     let style = {},
-        dx = horizontal ? distance + factor * width : 0,
-        dy = vertical ? distance + factor * height : 0;
+      dx = horizontal ? distance + factor * width : 0,
+      dy = vertical ? distance + factor * height : 0;
     style.WebkitTransform = style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
     return style;
   }
@@ -219,18 +250,18 @@ class Deck extends Component {
     }));
     let prevSlideProps = slidesProps[prev], currentSlideProps = slidesProps[current];
     /*
-    swipingUp && console.log('swipingUp');
-    swipingDown && console.log('swipingDown');
-    forwardingUp && console.log('forwardingUp');
-    forwardingDown && console.log('forwardingDown');
-    swipeForwardingUp && console.log('swipeForwardingUp');
-    swipeForwardingDown && console.log('swipeForwardingDown');
-    swipeCancelUp && console.log('swipeCancelUp');
-    swipeCancelDown && console.log('swipeCancelDown');
-    normal && console.log('normal');
-    */
+     swipingUp && console.log('swipingUp');
+     swipingDown && console.log('swipingDown');
+     forwardingUp && console.log('forwardingUp');
+     forwardingDown && console.log('forwardingDown');
+     swipeForwardingUp && console.log('swipeForwardingUp');
+     swipeForwardingDown && console.log('swipeForwardingDown');
+     swipeCancelUp && console.log('swipeCancelUp');
+     swipeCancelDown && console.log('swipeCancelDown');
+     normal && console.log('normal');
+     */
 
-    loop = loop && (swipingUp || swipingDown || swipeForwardingUp || swipeForwardingDown || swipeCancelUp || swipeCancelDown);
+    //loop = loop && (swipingUp || swipingDown || swipeForwardingUp || swipeForwardingDown || swipeCancelUp || swipeCancelDown);
     currentSlideProps.current = prevSlideProps.prev = true;
 
     if (prev !== current && status !== STATUS.NORMAL) {
@@ -252,11 +283,16 @@ class Deck extends Component {
           currentFactor = 1;
         } else if (swipeForwardingUp) {
           currentFactor = -1;
+        } else if (forwardingUp) {
+          currentFactor = -1;
+        } else if (forwardingDown) {
+          currentFactor = 1;
         }
       }
       prevSlideProps.style = this.setSlideStyle(prevFactor);
       currentSlideProps.style = this.setSlideStyle(currentFactor);
     }
+    currentSlideProps.ref = CURRENT_SLIDE_REF;
     return slidesProps.map((props, index) => React.cloneElement(slides[index], props));
   }
 
@@ -275,7 +311,7 @@ class Deck extends Component {
     }, 'deck');
     return (
       <div className={className} {...props}>
-        {this.updateSlides()}
+      {this.updateSlides()}
       </div>
     );
   }

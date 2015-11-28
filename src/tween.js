@@ -20,8 +20,8 @@ class Tween extends FlatEvent {
   constructor(from, easing, duration) {
     super();
     this.reset(from)
-        .ease(easing)
-        .duration(duration);
+    .ease(easing)
+    .duration(duration);
   }
   reset(from) {
     this.stop();
