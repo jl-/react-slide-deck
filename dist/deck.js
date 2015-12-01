@@ -127,20 +127,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var SWIPE_DURA = 1400; // default transition duration
 	var SWIPE_ONSET = 6;
-	var SWIPE_FACTOR = 0.4;
+	var SWIPE_FACTOR = 0.22;
+	var FORWARD_SPEED = 6;
 	var CURRENT_SLIDE_REF = 'CURRENT_SLIDE';
 	
 	var STATUS = {
 	  NORMAL: 0,
-	  FORWARDING_UP: 1,
-	  FORWARDING_DOWN: 2,
-	  SWIPE_STARTED: 3,
-	  SWIPING_UP: 4,
-	  SWIPING_DOWN: 5,
-	  SWIPE_FORWARDING_UP: 6,
-	  SWIPE_FORWARDING_DOWN: 7,
-	  SWIPE_CANCELED_UP: 8,
-	  SWIPE_CANCELED_DOWN: 9
+	  SWIPE_STARTED: 1,
+	  SWIPING: 2,
+	  FORWARDING: 4,
+	  CANCELING: 8,
+	  UP: 16,
+	  DOWN: 32
 	};
 	
 	var Deck = (function (_Component) {
@@ -154,7 +152,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    this.state = { current: current, prev: current + 1, status: STATUS.NORMAL };
 	    this.tween = new _tween2['default']();
-	    this.tween.ease(props.easing).duration(props.dura || 1200).on('started', this.onSwitchStarted.bind(this)).on('updating', this.onSwitching.bind(this)).on('stopped', this.onSwitchStopped.bind(this)).on('paused', this.onSwitchPaused.bind(this)).on('done', this.onSwitchDone.bind(this));
+	    this.tween.ease(props.easing).duration(props.dura || SWIPE_DURA).on('started', this.onSwitchStarted.bind(this)).on('updating', this.onSwitching.bind(this)).on('stopped', this.onSwitchStopped.bind(this)).on('paused', this.onSwitchPaused.bind(this)).on('done', this.onSwitchDone.bind(this));
 	  }
 	
 	  _createClass(Deck, [{
@@ -172,7 +170,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'shouldComponentUpdate',
 	    value: function shouldComponentUpdate(nextProps, nextState) {
-	      if (nextState.status === STATUS.SWIPE_STARTED) return false;
+	      if (nextState.status & STATUS.SWIPE_STARTED) return false;
 	      return true;
 	    }
 	  }, {
@@ -183,13 +181,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var prev = this.state.current;
 	        var current = this.normalizeIndex(nextProps.current);
 	        if (prev !== current) {
-	          if (nextProps.loop && nextProps.direction) {
-	            status = nextProps.direction === 'up' ? STATUS.FORWARDING_UP : STATUS.FORWARDING_DOWN;
-	          } else {
-	            status = prev < current ? STATUS.FORWARDING_DOWN : STATUS.FORWARDING_UP;
-	          }
+	          status = STATUS.FORWARDING | (prev < current ? STATUS.DOWN : STATUS.UP);
 	          this.setState({ prev: prev, current: current, status: status });
-	          this.startTran(0, (status === STATUS.FORWARDING_DOWN ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
+	          this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
 	        }
 	      }
 	    }
@@ -261,6 +255,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.tween.reset({ distance: from }).to({ distance: to }).start();
 	    }
 	  }, {
+	    key: 'resumeTran',
+	    value: function resumeTran() {
+	      var status = this.state.status & ~STATUS.SWIPE_STARTED;
+	      this.setState({ status: status });
+	      this.tween.resume();
+	    }
+	  }, {
 	    key: 'isCurrentSlideScrolling',
 	    value: function isCurrentSlideScrolling(delta) {
 	      var currentSlideDom = _reactDom2['default'].findDOMNode(this.refs[CURRENT_SLIDE_REF]);
@@ -295,9 +296,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      current = loop ? (current + slidesCount) % slidesCount : current;
 	
 	      if (current >= 0 && current < slidesCount) {
-	        status = e.deltaY > 0 ? STATUS.SWIPE_FORWARDING_DOWN : STATUS.SWIPE_FORWARDING_UP;
+	        status = STATUS.FORWARDING | (e.deltaY > 0 ? STATUS.DOWN : STATUS.UP);
 	        this.setState({ prev: prev, current: current, status: status });
-	        this.startTran(0, (status === STATUS.SWIPE_FORWARDING_DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
+	        this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
 	      }
 	    }
 	  }, {
@@ -306,10 +307,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var x = _ref3.x;
 	      var y = _ref3.y;
 	
-	      var status = this.state.status;
-	      if (status === STATUS.SWIPE_FORWARDING_UP || status === STATUS.SWIPE_FORWARDING_DOWN) return;
 	      this.tween.stop();
-	      this.setState({ x: x, y: y, status: STATUS.SWIPE_STARTED });
+	      this.setState({ oriX: x, oriY: y, status: this.state.status | STATUS.SWIPE_STARTED });
 	    }
 	  }, {
 	    key: 'handleSwipeMove',
@@ -318,12 +317,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var y = _ref4.y;
 	
 	      var status = this.state.status;
-	      if (status !== STATUS.SWIPE_STARTED && status !== STATUS.SWIPING_UP && status !== STATUS.SWIPING_DOWN) return;
+	      if (!(status & STATUS.SWIPING || status & STATUS.SWIPE_STARTED)) return;
+	
 	      var _state = this.state;
 	      var prev = _state.prev;
 	      var current = _state.current;
-	      var oldX = _state.x;
-	      var oldY = _state.y;
+	      var oriX = _state.oriX;
+	      var oriY = _state.oriY;
 	      var width = _state.width;
 	      var height = _state.height;
 	      var _state$distance = _state.distance;
@@ -332,62 +332,77 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var horizontal = _props2.horizontal;
 	      var vertical = _props2.vertical;
 	
-	      // swipe started during swipeCanceled tweening
-	      if (status === STATUS.SWIPE_STARTED && distance !== 0) {
-	        horizontal ? oldX = x - distance : oldY = y - distance;
-	        this.setState({ x: oldX, y: oldY });
-	      }
-	      distance = horizontal ? x - oldX : y - oldY;
-	
 	      var slidesCount = _react.Children.count(this.props.children);
-	      prev = (status === STATUS.SWIPE_STARTED ? current : prev) + (distance > 0 ? -1 : 1);
-	      prev = this.props.loop ? (prev + slidesCount) % slidesCount : prev;
-	      if (status === STATUS.SWIPE_STARTED) {
-	        this.setState({ prev: current });
+	      var distanceDimen = horizontal ? width : height;
+	
+	      // swipe started during Canceling or Forwarding tweening
+	      if (status & STATUS.SWIPE_STARTED && distance !== 0) {
+	        horizontal ? oriX = x - distance : oriY = y - distance;
 	      }
-	      if (prev < 0 || prev >= slidesCount) {
-	        this.onSwitching({ distance: 0 });
+	      distance = horizontal ? x - oriX : y - oriY;
+	
+	      if (status === STATUS.SWIPE_STARTED || status & STATUS.CANCELING) {
+	        prev = current;
+	      }
+	
+	      if (Math.abs(distance) > distanceDimen) {
+	        distance = (distance + distanceDimen) % distanceDimen;
+	        horizontal ? oriX = x - distance : oriY = y - distance;
+	        prev = current;
+	      }
+	
+	      current = prev + (distance > 0 ? -1 : 1);
+	      current = this.props.loop ? (current + slidesCount) % slidesCount : current;
+	
+	      if (current < 0 || current >= slidesCount) {
 	        return;
 	      }
 	
-	      status = distance < 0 ? STATUS.SWIPING_DOWN : STATUS.SWIPING_UP;
-	      this.setState({ current: prev, status: status });
+	      status = STATUS.SWIPING | (distance < 0 ? STATUS.DOWN : STATUS.UP);
+	      this.setState({ prev: prev, current: current, status: status, oriX: oriX, oriY: oriY, gear: distance - (this.state.distance || 0) });
 	      this.onSwitching({ distance: distance, factor: Math.abs(distance) / (horizontal ? width : height) });
 	    }
 	  }, {
 	    key: 'handleSwipeEnd',
-	    value: function handleSwipeEnd() {
-	      var status = this.state.status;
-	      if (status !== STATUS.SWIPING_UP && status !== STATUS.SWIPING_DOWN) return;
-	
+	    value: function handleSwipeEnd(_ref5) {
+	      var x = _ref5.x;
+	      var y = _ref5.y;
 	      var _props3 = this.props;
 	      var horizontal = _props3.horizontal;
 	      var vertical = _props3.vertical;
 	      var _props3$factor = _props3.factor;
 	      var factor = _props3$factor === undefined ? SWIPE_FACTOR : _props3$factor;
+	      var _props3$speed = _props3.speed;
+	      var speed = _props3$speed === undefined ? FORWARD_SPEED : _props3$speed;
 	      var _state2 = this.state;
 	      var prev = _state2.prev;
 	      var current = _state2.current;
 	      var width = _state2.width;
 	      var height = _state2.height;
-	      var distance = _state2.distance;
+	      var status = _state2.status;
+	      var _state2$distance = _state2.distance;
+	      var distance = _state2$distance === undefined ? 0 : _state2$distance;
+	      var _state2$gear = _state2.gear;
+	      var gear = _state2$gear === undefined ? 0 : _state2$gear;
 	
-	      var shouldForward = Math.abs(distance) / (horizontal ? width : height) > factor;
+	      if (distance == 0) return;
+	      if (status & STATUS.SWIPE_STARTED) return this.resumeTran();
+	
+	      var shouldForward = distance * gear >= 0 && (Math.abs(distance) / (horizontal ? width : height) >= factor || Math.abs(gear) >= speed);
 	
 	      if (!shouldForward) {
 	        ;
-	        var _ref5 = [prev, current];
-	        current = _ref5[0];
-	        prev = _ref5[1];
-	      }status = !shouldForward ? distance > 0 ? STATUS.SWIPE_CANCELED_UP : STATUS.SWIPE_CANCELED_DOWN : distance > 0 ? STATUS.SWIPE_FORWARDING_UP : STATUS.SWIPE_FORWARDING_DOWN;
+	        var _ref6 = [prev, current];
+	        current = _ref6[0];
+	        prev = _ref6[1];
+	      }status = (shouldForward ? STATUS.FORWARDING : STATUS.CANCELING) | (distance > 0 ? STATUS.UP : STATUS.DOWN);
+	
 	      this.setState({ prev: prev, current: current, status: status });
-	      this.startTran(distance, (shouldForward ? distance > 0 ? 1 : -1 : 0) * (horizontal ? width : height));
+	      this.startTran(distance, shouldForward ? (distance > 0 ? 1 : -1) * (horizontal ? width : height) : 0);
 	    }
 	  }, {
 	    key: 'handleSwipeCancel',
-	    value: function handleSwipeCancel() {
-	      this.setState({ status: STATUS.SWIPE_CANCELED });
-	    }
+	    value: function handleSwipeCancel() {}
 	
 	    // For touch events
 	  }, {
@@ -406,7 +421,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'handleTouchEnd',
 	    value: function handleTouchEnd(e) {
-	      this.handleSwipeEnd();
+	      var touch = e.changedTouches[0];
+	      this.handleSwipeEnd({ x: touch.clientX, y: touch.clientY });
 	    }
 	  }, {
 	    key: 'handleTouchCancel',
@@ -450,61 +466,44 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var slidesCount = _react.Children.count(slides),
 	          lastIndex = slidesCount - 1;
-	      var swipingUp = status === STATUS.SWIPING_UP,
-	          swipingDown = status === STATUS.SWIPING_DOWN,
-	          forwardingUp = status === STATUS.FORWARDING_UP,
-	          forwardingDown = status === STATUS.FORWARDING_DOWN,
-	          swipeForwardingUp = status === STATUS.SWIPE_FORWARDING_UP,
-	          swipeForwardingDown = status === STATUS.SWIPE_FORWARDING_DOWN,
-	          swipeCancelUp = status === STATUS.SWIPE_CANCELED_UP,
-	          swipeCancelDown = status === STATUS.SWIPE_CANCELED_DOWN,
-	          normal = status === STATUS.NORMAL;
+	
+	      var SWIPING = status & STATUS.SWIPING,
+	          FORWARDING = status & STATUS.FORWARDING,
+	          CANCELING = status & STATUS.CANCELING,
+	          UP = status & STATUS.UP,
+	          DOWN = status & STATUS.DOWN,
+	          NORMAL = status === STATUS.NORMAL;
+	
 	      var slidesProps = _react.Children.map(slides, function (slide, index) {
 	        return _defineProperty({
-	          done: normal,
+	          done: NORMAL,
 	          key: index
 	        }, index < current ? 'before' : index === current ? 'current' : 'after', true);
 	      });
 	      var prevSlideProps = slidesProps[prev],
 	          currentSlideProps = slidesProps[current];
-	      /*
-	       swipingUp && console.log('swipingUp');
-	       swipingDown && console.log('swipingDown');
-	       forwardingUp && console.log('forwardingUp');
-	       forwardingDown && console.log('forwardingDown');
-	       swipeForwardingUp && console.log('swipeForwardingUp');
-	       swipeForwardingDown && console.log('swipeForwardingDown');
-	       swipeCancelUp && console.log('swipeCancelUp');
-	       swipeCancelDown && console.log('swipeCancelDown');
-	       normal && console.log('normal');
-	       */
 	
-	      //loop = loop && (swipingUp || swipingDown || swipeForwardingUp || swipeForwardingDown || swipeCancelUp || swipeCancelDown);
 	      currentSlideProps.current = prevSlideProps.prev = true;
 	
-	      if (prev !== current && status !== STATUS.NORMAL) {
+	      if (prev !== current && !NORMAL) {
 	        var prevFactor = 0;
 	        var currentFactor = current > prev ? 1 : -1;
-	        if (swipeCancelDown) {
+	        if (CANCELING && DOWN) {
 	          currentFactor = 0;
 	          prevFactor = 1;
-	        } else if (swipeCancelUp) {
+	        } else if (CANCELING && UP) {
 	          currentFactor = 0;
 	          prevFactor = -1;
 	        }
 	        if (loop) {
-	          if (swipingDown) {
+	          if (SWIPING && DOWN) {
 	            currentFactor = 1;
-	          } else if (swipingUp) {
+	          } else if (SWIPING && UP) {
 	            currentFactor = -1;
-	          } else if (swipeForwardingDown) {
+	          } else if (FORWARDING && DOWN) {
 	            currentFactor = 1;
-	          } else if (swipeForwardingUp) {
+	          } else if (FORWARDING && UP) {
 	            currentFactor = -1;
-	          } else if (forwardingUp) {
-	            currentFactor = -1;
-	          } else if (forwardingDown) {
-	            currentFactor = 1;
 	          }
 	        }
 	        prevSlideProps.style = this.setSlideStyle(prevFactor);
