@@ -18,7 +18,6 @@
  * </Deck>
  *
  */
-
 import React, { Component, Children } from 'react';
 import ReactDOM from 'react-dom';
 import Tween from './tween';
@@ -103,7 +102,7 @@ class Deck extends Component {
     callback && raf(() => callback.call(this, factor || Math.abs(distance) / (this.props.horizontal ? this.state.width : this.state.height), this));
   }
   onSwitchDone(props) {
-    this.setState({distance: 0, status: STATUS.NORMAL});
+    this.setState({ distance: 0, status: STATUS.NORMAL });
     let callback = this.props.onSwitchDone;
     callback && raf(() => callback.call(this, this.state));
   }
@@ -116,7 +115,7 @@ class Deck extends Component {
     callback && callback.call(this, this.state);
   }
   startTran(from, to) {
-    this.tween.reset({distance: from}).to({distance: to}).start();
+    this.tween.reset({ distance: from }).to({ distance: to }).start();
   }
   resumeTran() {
     let status = this.state.status & (~STATUS.SWIPE_STARTED);
@@ -157,7 +156,7 @@ class Deck extends Component {
   }
   handleSwipeMove({ x, y }) {
     let status = this.state.status;
-    if (!(status & STATUS.SWIPING || status & STATUS.SWIPE_STARTED)) return;
+    if (!(status & STATUS.SWIPING || status & STATUS.SWIPE_STARTED) || this.isCurrentSlideScrolling()) return;
 
     let { prev, current, oriX, oriY, width, height, distance = 0 } = this.state;
     const { horizontal, vertical } = this.props;
@@ -175,27 +174,31 @@ class Deck extends Component {
       prev = current;
     }
 
+    const gear = distance - (this.state.distance || 0);
 
-    if (Math.abs(distance) > distanceDimen) {
-      distance = (distance + distanceDimen) % distanceDimen;
+    if (Math.abs(distance) >= distanceDimen) {
+      distance %= distanceDimen;
       horizontal ? (oriX = x - distance) : (oriY = y - distance);
-      prev = current
+      prev = current;
     }
 
     current = prev + (distance > 0 ? -1 : 1);
     current = this.props.loop ? (current + slidesCount) % slidesCount : current;
 
     if (current < 0 || current >= slidesCount) {
+      //this.setState({ oriX, oriY });
+      //this.onSwitching({ distance: (distance > 0 ? 1 : 0) * (horizontal ? width : height), factor: 1});
       return;
     }
 
     status = STATUS.SWIPING | (distance < 0 ? STATUS.DOWN : STATUS.UP);
-    this.setState({ prev, current, status, oriX, oriY, gear: distance - (this.state.distance || 0) });
+    this.setState({ prev, current, status, oriX, oriY, gear });
     this.onSwitching({ distance, factor: Math.abs(distance) / (horizontal ? width : height) });
   }
   handleSwipeEnd({ x, y }) {
     let { horizontal, vertical, factor = SWIPE_FACTOR, speed = FORWARD_SPEED } = this.props;
     let { prev, current, width, height, status, distance = 0, gear = 0 } = this.state;
+    gear = Math.floor(gear);
 
     if (distance == 0) return;
     if (status & STATUS.SWIPE_STARTED) return this.resumeTran();
@@ -234,9 +237,9 @@ class Deck extends Component {
     let { horizontal, vertical, loop, swipe } = this.props;
     let style = {},
       dx = horizontal ? distance + factor * width : 0,
-      dy = vertical ? distance + factor * height : 0;
-    style.WebkitTransform = style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
-    return style;
+        dy = vertical ? distance + factor * height : 0;
+        style.WebkitTransform = style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+        return style;
   }
 
   updateSlides() {
@@ -246,47 +249,47 @@ class Deck extends Component {
 
     const SWIPING = status & STATUS.SWIPING,
       FORWARDING = status & STATUS.FORWARDING,
-      CANCELING = status & STATUS.CANCELING,
-      UP = status & STATUS.UP,
-      DOWN = status & STATUS.DOWN,
-      NORMAL = status === STATUS.NORMAL;
+        CANCELING = status & STATUS.CANCELING,
+          UP = status & STATUS.UP,
+            DOWN = status & STATUS.DOWN,
+              NORMAL = status === STATUS.NORMAL;
 
-    let slidesProps = Children.map(slides, (slide, index) => ({
-      done: NORMAL,
-      key: index,
-      [index < current ? 'before' : index === current ? 'current' : 'after']: true
-    }));
-    let prevSlideProps = slidesProps[prev], currentSlideProps = slidesProps[current];
+              let slidesProps = Children.map(slides, (slide, index) => ({
+                done: NORMAL,
+                key: index,
+                [index < current ? 'before' : index === current ? 'current' : 'after']: true
+              }));
+              let prevSlideProps = slidesProps[prev], currentSlideProps = slidesProps[current];
 
 
-    currentSlideProps.current = prevSlideProps.prev = true;
+              currentSlideProps.current = prevSlideProps.prev = true;
 
-    if (prev !== current && !NORMAL) {
-      let prevFactor = 0;
-      let currentFactor = current > prev ? 1 : -1;
-      if (CANCELING && DOWN) {
-        currentFactor = 0;
-        prevFactor = 1;
-      } else if (CANCELING && UP) {
-        currentFactor = 0;
-        prevFactor = -1;
-      }
-      if (loop) {
-        if (SWIPING && DOWN) {
-          currentFactor = 1;
-        } else if (SWIPING && UP) {
-          currentFactor = -1;
-        } else if (FORWARDING && DOWN) {
-          currentFactor = 1;
-        } else if (FORWARDING && UP) {
-          currentFactor = -1;
-        }
-      }
-      prevSlideProps.style = this.setSlideStyle(prevFactor);
-      currentSlideProps.style = this.setSlideStyle(currentFactor);
-    }
-    currentSlideProps.ref = CURRENT_SLIDE_REF;
-    return slidesProps.map((props, index) => React.cloneElement(slides[index], props));
+              if (prev !== current && !NORMAL) {
+                let prevFactor = 0;
+                let currentFactor = current > prev ? 1 : -1;
+                if (CANCELING && DOWN) {
+                  currentFactor = 0;
+                  prevFactor = 1;
+                } else if (CANCELING && UP) {
+                  currentFactor = 0;
+                  prevFactor = -1;
+                }
+                if (loop) {
+                  if (SWIPING && DOWN) {
+                    currentFactor = 1;
+                  } else if (SWIPING && UP) {
+                    currentFactor = -1;
+                  } else if (FORWARDING && DOWN) {
+                    currentFactor = 1;
+                  } else if (FORWARDING && UP) {
+                    currentFactor = -1;
+                  }
+                }
+                prevSlideProps.style = this.setSlideStyle(prevFactor);
+                currentSlideProps.style = this.setSlideStyle(currentFactor);
+              }
+              currentSlideProps.ref = CURRENT_SLIDE_REF;
+              return slidesProps.map((props, index) => React.cloneElement(slides[index], props));
   }
 
   render() {

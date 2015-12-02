@@ -9,12 +9,11 @@ import FlatEvent from './flat-event';
 import raf from 'raf';
 import ease from './ease';
 const STATUS = {
-  INIT: 1,
+  INIT: 0,
+  DONE: 1,
   RUNNING: 2,
   STOPPED: 3,
-  PAUSED: 4,
-  RESUMED: 5,
-  DONE: 6,
+  PAUSED: 4
 };
 class Tween extends FlatEvent {
   constructor(from, easing, duration) {
@@ -67,12 +66,14 @@ class Tween extends FlatEvent {
     return this;
   }
   stop() {
+    if (this._status !== STATUS.RUNNING) return;
     raf.cancel(this._raf);
     this._status = STATUS.STOPPED;
     this.emit('stopped', this._curr);
     return this;
   }
   pause() {
+    if (this._status !== STATUS.RUNNING) return;
     raf.cancel(this._raf);
     this._status = STATUS.PAUSED;
     this.emit('paused', this._curr);
@@ -91,23 +92,27 @@ class Tween extends FlatEvent {
   }
   resume(p) {
     if (this._status === STATUS.RUNNING) return;
-    if (p >= 0) {
-      this._lasted = p * this._duration;
-      this.emit('resumed');
-    }
+    if (p >= 0) this._lasted = p * this._duration;
+
     this._status = STATUS.RUNNING;
     this._latest = Date.now();
     this._raf = raf(::this.iterate);
+    this.emit('resumed');
     return this;
   }
   start() {
-    if (this.resume()) {
-      this._start = this._latest;
-      this.emit('started');
-    }
+    if (this._status === STATUS.RUNNING) return;
+
+    this._status = STATUS.RUNNING;
+    this._latest = Date.now();
+    this._raf = raf(::this.iterate);
+
+    this._start = this._latest;
+    this.emit('started');
     return this;
   }
 }
 Tween.ease = ease;
 
 export default Tween;
+

@@ -74,7 +74,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * </Deck>
 	 *
 	 */
-	
 	'use strict';
 	
 	Object.defineProperty(exports, '__esModule', {
@@ -317,7 +316,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var y = _ref4.y;
 	
 	      var status = this.state.status;
-	      if (!(status & STATUS.SWIPING || status & STATUS.SWIPE_STARTED)) return;
+	      if (!(status & STATUS.SWIPING || status & STATUS.SWIPE_STARTED) || this.isCurrentSlideScrolling()) return;
 	
 	      var _state = this.state;
 	      var prev = _state.prev;
@@ -345,8 +344,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        prev = current;
 	      }
 	
-	      if (Math.abs(distance) > distanceDimen) {
-	        distance = (distance + distanceDimen) % distanceDimen;
+	      var gear = distance - (this.state.distance || 0);
+	
+	      if (Math.abs(distance) >= distanceDimen) {
+	        distance %= distanceDimen;
 	        horizontal ? oriX = x - distance : oriY = y - distance;
 	        prev = current;
 	      }
@@ -355,11 +356,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      current = this.props.loop ? (current + slidesCount) % slidesCount : current;
 	
 	      if (current < 0 || current >= slidesCount) {
+	        //this.setState({ oriX, oriY });
+	        //this.onSwitching({ distance: (distance > 0 ? 1 : 0) * (horizontal ? width : height), factor: 1});
 	        return;
 	      }
 	
 	      status = STATUS.SWIPING | (distance < 0 ? STATUS.DOWN : STATUS.UP);
-	      this.setState({ prev: prev, current: current, status: status, oriX: oriX, oriY: oriY, gear: distance - (this.state.distance || 0) });
+	      this.setState({ prev: prev, current: current, status: status, oriX: oriX, oriY: oriY, gear: gear });
 	      this.onSwitching({ distance: distance, factor: Math.abs(distance) / (horizontal ? width : height) });
 	    }
 	  }, {
@@ -384,6 +387,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var distance = _state2$distance === undefined ? 0 : _state2$distance;
 	      var _state2$gear = _state2.gear;
 	      var gear = _state2$gear === undefined ? 0 : _state2$gear;
+	
+	      gear = Math.floor(gear);
 	
 	      if (distance == 0) return;
 	      if (status & STATUS.SWIPE_STARTED) return this.resumeTran();
@@ -605,12 +610,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _ease3 = _interopRequireDefault(_ease2);
 	
 	var STATUS = {
-	  INIT: 1,
+	  INIT: 0,
+	  DONE: 1,
 	  RUNNING: 2,
 	  STOPPED: 3,
-	  PAUSED: 4,
-	  RESUMED: 5,
-	  DONE: 6
+	  PAUSED: 4
 	};
 	
 	var Tween = (function (_FlatEvent) {
@@ -687,6 +691,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'stop',
 	    value: function stop() {
+	      if (this._status !== STATUS.RUNNING) return;
 	      _raf2['default'].cancel(this._raf);
 	      this._status = STATUS.STOPPED;
 	      this.emit('stopped', this._curr);
@@ -695,6 +700,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'pause',
 	    value: function pause() {
+	      if (this._status !== STATUS.RUNNING) return;
 	      _raf2['default'].cancel(this._raf);
 	      this._status = STATUS.PAUSED;
 	      this.emit('paused', this._curr);
@@ -717,22 +723,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'resume',
 	    value: function resume(p) {
 	      if (this._status === STATUS.RUNNING) return;
-	      if (p >= 0) {
-	        this._lasted = p * this._duration;
-	        this.emit('resumed');
-	      }
+	      if (p >= 0) this._lasted = p * this._duration;
+	
 	      this._status = STATUS.RUNNING;
 	      this._latest = Date.now();
 	      this._raf = (0, _raf2['default'])(this.iterate.bind(this));
+	      this.emit('resumed');
 	      return this;
 	    }
 	  }, {
 	    key: 'start',
 	    value: function start() {
-	      if (this.resume()) {
-	        this._start = this._latest;
-	        this.emit('started');
-	      }
+	      if (this._status === STATUS.RUNNING) return;
+	
+	      this._status = STATUS.RUNNING;
+	      this._latest = Date.now();
+	      this._raf = (0, _raf2['default'])(this.iterate.bind(this));
+	
+	      this._start = this._latest;
+	      this.emit('started');
 	      return this;
 	    }
 	  }]);
