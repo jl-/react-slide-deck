@@ -135,6 +135,13 @@ class Deck extends Component {
   }
 
   handleWheel(e) {
+    // Only switch if the wheel has just started accelerating noticeably
+    let prevDeltaRatio = this.prevDeltaRatio;
+    let deltaRatio = this.prevWheelDelta ? e.deltaY / this.prevWheelDelta : 1;
+    this.prevDeltaRatio = deltaRatio;
+    this.prevWheelDelta = e.deltaY;
+    if (deltaRatio < 2 || prevDeltaRatio > 2) return;
+    
     let status = this.state.status;
     if (status !== STATUS.NORMAL || e.deltaY === 0 || this.isCurrentSlideScrolling(e.deltaY)) return;
 
