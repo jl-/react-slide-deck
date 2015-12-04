@@ -28,8 +28,8 @@ import Slide from './slide';
 
 import styles from './style.scss';
 
-const SWIPE_DURA = 1400; // default transition duration
-const SWIPE_ONSET = 6;
+const SWIPE_DURA = 1000; // default transition duration
+const SWIPE_MIN_DISTANCE = 0;
 const SWIPE_FACTOR = 0.22;
 const FORWARD_SPEED = 6;
 const CURRENT_SLIDE_REF = 'CURRENT_SLIDE';
@@ -123,10 +123,11 @@ class Deck extends Component {
     this.tween.resume();
   }
 
-  isCurrentSlideScrolling(delta) {
+  isCurrentSlideScrolling({ delta }) {
     const currentSlideDom = ReactDOM.findDOMNode(this.refs[CURRENT_SLIDE_REF]);
     const { offsetWidth, scrollLeft, scrollWidth, offsetHeight, scrollTop, scrollHeight } = currentSlideDom;
-    const sizes = this.props.horizontal ? [offsetWidth, scrollLeft, scrollWidth] : [offsetHeight, scrollTop, scrollHeight];
+    //const sizes = this.props.horizontal ? [offsetWidth, scrollLeft, scrollWidth] : [offsetHeight, scrollTop, scrollHeight];
+    const sizes = [offsetHeight, scrollTop, scrollHeight];
 
     if (delta > 0 && sizes[0] + sizes[1] < sizes[2]) return true;
     if (delta < 0 && sizes[1] > 0) return true;
@@ -135,16 +136,29 @@ class Deck extends Component {
   }
 
   handleWheel(e) {
-    let status = this.state.status;
-    if (status !== STATUS.NORMAL || e.deltaY === 0 || this.isCurrentSlideScrolling(e.deltaY)) return;
+
+    const delta = e.deltaY;
+    let { status, prevWheelDelta = 1 } = this.state;
+    console.log(status, prevWheelDelta, delta);
+    Math.abs(delta) > 0 && this.setState({ prevWheelDelta: delta });
+    if (Math.abs(delta) / Math.abs(prevWheelDelta) <= 2) return;
+    console.log('goon');
+
+
+
+
+    if (status !== STATUS.NORMAL || delta === 0 || this.isCurrentSlideScrolling({ delta })) return;
+
+
+
 
     let { children: slides, loop, horizontal } = this.props;
-    let prev = this.state.current, current = prev + (e.deltaY > 0 ? 1 : -1);
+    let prev = this.state.current, current = prev + (delta > 0 ? 1 : -1);
     let slidesCount = Children.count(slides);
     current = loop ? (current + slidesCount) % slidesCount : current;
 
     if (current >= 0 && current < slidesCount) {
-      status = STATUS.FORWARDING | (e.deltaY > 0 ? STATUS.DOWN : STATUS.UP);
+      status = STATUS.FORWARDING | (delta > 0 ? STATUS.DOWN : STATUS.UP);
       this.setState({ prev, current, status });
       this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
     }
@@ -163,19 +177,25 @@ class Deck extends Component {
     const slidesCount = Children.count(this.props.children);
     const distanceDimen = horizontal ? width : height;
 
-
-    // swipe started during Canceling or Forwarding tweening
+    // new swipe started during Canceling or Forwarding tweening
     if (status & STATUS.SWIPE_STARTED && distance !== 0) {
       horizontal ? (oriX = x - distance) : (oriY = y - distance);
     }
     distance = horizontal ? x - oriX : y - oriY;
+    const gear = distance - (this.state.distance || 0);
+
+    // swipe direction detection, if not corresponds with this.props;
+    // or if current slide can swipe;
+    // then return false to cancel this swipe
+    let xDiff = Math.abs(x - oriX);
+    let yDiff = Math.abs(y - oriY);
+    const swipeDirectionOk = (xDiff >= SWIPE_MIN_DISTANCE || yDiff >= SWIPE_MIN_DISTANCE) && (xDiff >= yDiff ? horizontal : vertical);
+    if (!swipeDirectionOk) return false;
+    if (this.isCurrentSlideScrolling({ delta: -gear })) return false;
 
     if (status === STATUS.SWIPE_STARTED || status & STATUS.CANCELING) {
       prev = current;
     }
-
-    const gear = distance - (this.state.distance || 0);
-    if (this.isCurrentSlideScrolling(-gear)) return;
 
     if (Math.abs(distance) >= distanceDimen) {
       distance %= distanceDimen;
@@ -187,10 +207,9 @@ class Deck extends Component {
     current = this.props.loop ? (current + slidesCount) % slidesCount : current;
 
     if (current < 0 || current >= slidesCount) {
-      //this.setState({ oriX, oriY });
-      //this.onSwitching({ distance: (distance > 0 ? 1 : 0) * (horizontal ? width : height), factor: 1});
       return;
     }
+    console.log('bb');
 
     status = STATUS.SWIPING | (distance < 0 ? STATUS.DOWN : STATUS.UP);
     this.setState({ prev, current, status, oriX, oriY, gear });
@@ -223,7 +242,7 @@ class Deck extends Component {
   handleTouchMove(e) {
     //e.preventDefault();
     const touch = e.changedTouches[0];
-    this.handleSwipeMove({ x: touch.clientX, y: touch.clientY });
+    this.handleSwipeMove({ x: touch.clientX, y: touch.clientY }) === undefined && e.preventDefault();
   }
   handleTouchEnd(e) {
     const touch = e.changedTouches[0];
