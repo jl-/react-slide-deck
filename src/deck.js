@@ -135,8 +135,12 @@ class Deck extends Component {
   }
 
   handleWheel(e) {
-    let status = this.state.status;
-    if (status !== STATUS.NORMAL || e.deltaY === 0 || this.isCurrentSlideScrolling(e.deltaY)) return;
+    // Only switch if the wheel has just started accelerating noticeably
+    let prevDeltaRatio = this.prevDeltaRatio;
+    let deltaRatio = this.prevWheelDelta ? e.deltaY / this.prevWheelDelta : 1;
+    this.prevDeltaRatio = deltaRatio;
+    this.prevWheelDelta = e.deltaY;
+    if (deltaRatio < 2 || prevDeltaRatio > 2) return;
 
     let { children: slides, loop, horizontal } = this.props;
     let prev = this.state.current, current = prev + (e.deltaY > 0 ? 1 : -1);
@@ -144,7 +148,7 @@ class Deck extends Component {
     current = loop ? (current + slidesCount) % slidesCount : current;
 
     if (current >= 0 && current < slidesCount) {
-      status = STATUS.FORWARDING | (e.deltaY > 0 ? STATUS.DOWN : STATUS.UP);
+      let status = STATUS.FORWARDING | (e.deltaY > 0 ? STATUS.DOWN : STATUS.UP);
       this.setState({ prev, current, status });
       this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
     }
