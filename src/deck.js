@@ -139,18 +139,10 @@ class Deck extends Component {
 
     const delta = e.deltaY;
     let { status, prevWheelDelta = 1 } = this.state;
-    console.log(status, prevWheelDelta, delta);
     Math.abs(delta) > 0 && this.setState({ prevWheelDelta: delta });
     if (Math.abs(delta) / Math.abs(prevWheelDelta) <= 2) return;
-    console.log('goon');
-
-
-
 
     if (status !== STATUS.NORMAL || delta === 0 || this.isCurrentSlideScrolling({ delta })) return;
-
-
-
 
     let { children: slides, loop, horizontal } = this.props;
     let prev = this.state.current, current = prev + (delta > 0 ? 1 : -1);
@@ -209,7 +201,6 @@ class Deck extends Component {
     if (current < 0 || current >= slidesCount) {
       return;
     }
-    console.log('bb');
 
     status = STATUS.SWIPING | (distance < 0 ? STATUS.DOWN : STATUS.UP);
     this.setState({ prev, current, status, oriX, oriY, gear });
