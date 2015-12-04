@@ -1,0 +1,20 @@
+{
+  "name": "react-slide-deck",
+  "version": "0.0.12",
+  "authors": [
+    "jl <i.dragonxx@gmail.com>"
+  ],
+  "description": "react-slide-deck",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "normalize.css": "~3.0.3"
+  }
+}
+

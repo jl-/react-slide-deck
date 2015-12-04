@@ -3,7 +3,8 @@ import path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 
 const PATHS = {
-  SRC: path.resolve(__dirname, 'client'),
+  SRC: path.resolve(__dirname, 'src'),
+  DEMO: path.resolve(__dirname, 'demo'),
   DIST: path.resolve(__dirname, 'dist'),
   NODE_MODULES: path.resolve(__dirname, 'node_modules'),
   PUBLIC: '/'
@@ -11,9 +12,10 @@ const PATHS = {
 const WEBPACK_HOST = process.env.HOST || 'localhost'
 const WEBPACK_PORT = process.env.PORT || 3003;
 
-let autoprefixerConf = [
+let AUTOPREFIXER_CONF = [
   '{browsers:["last 5 version"]}'
 ].join('&');
+
 
 let resolve = {
   extensions: ['', '.js', '.jsx']
@@ -54,7 +56,7 @@ let build = {
       loader: 'babel'
     }, {
       test: /\.(css|scss)$/,
-      loader: `style!css?importLoaders=2!autoprefixer?${autoprefixerConf}!sass`
+      loader: `style!css?importLoaders=2!autoprefixer?${AUTOPREFIXER_CONF}!sass`
     }]
   },
   devtool: 'sourcemap',
@@ -63,38 +65,57 @@ let build = {
 
 let demo = {
   entry: {
-    demo: './demo/index.js'
+    demo: [
+      'webpack-dev-server/client?http://' + WEBPACK_HOST + ':' + WEBPACK_PORT,
+      'webpack/hot/only-dev-server',
+      './demo/index.js'
+    ]
   },
   resolve: resolve,
   output: {
-    path: path.resolve(PATHS.DIST, 'demo'),
+    path: PATHS.DIST,
     filename: 'index.js',
     publicPath: PATHS.PUBLIC,
+    sourceMapFilename: 'index.map.json',
     libraryTarget: 'umd'
   },
   module: {
     loaders: [{
       test: /\.jsx?$/,
-      loader: 'babel'
+      loaders: ['react-hot', `babel`],
+      include: [PATHS.SRC, PATHS.DEMO]
     }, {
       test: /\.(css|scss)$/,
-      loader: `style!css?importLoaders=2!autoprefixer?${autoprefixerConf}!sass`
+      loader: `style!css?importLoaders=2!autoprefixer?${AUTOPREFIXER_CONF}!sass`
     }]
   },
   plugins: [
+    new webpack.HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
       inject: 'body',
       hash: true,
       template: './demo/index.html',
-      title: 'React',
+      title: 'Demo',
       filename: 'index.html'
     })
   ]
 }
 
 
+const devServerConf = {
+  contentBase: PATHS.DIST,
+  publicPath: '/',
+  historyApiFallback: true,
+  hot: true,
+  stats: {
+    colors: true
+  }
+};
 
 export default {
   build,
-  demo
+  demo,
+  devServerConf,
+  WEBPACK_HOST,
+  WEBPACK_PORT
 }

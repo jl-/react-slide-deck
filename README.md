@@ -13,6 +13,17 @@ also open on touch device, see the swipe effect
 
 --
 
+---
+### For development
+```
+bower install
+gulp dev
+
+// then open localhost:3003
+```
+
+---
+
 #### Usage:
 
 ```js

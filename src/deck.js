@@ -156,7 +156,7 @@ class Deck extends Component {
   }
   handleSwipeMove({ x, y }) {
     let status = this.state.status;
-    if (!(status & STATUS.SWIPING || status & STATUS.SWIPE_STARTED) || this.isCurrentSlideScrolling()) return;
+    if (!(status & STATUS.SWIPING || status & STATUS.SWIPE_STARTED)) return;
 
     let { prev, current, oriX, oriY, width, height, distance = 0 } = this.state;
     const { horizontal, vertical } = this.props;
@@ -175,6 +175,7 @@ class Deck extends Component {
     }
 
     const gear = distance - (this.state.distance || 0);
+    if (this.isCurrentSlideScrolling(-gear)) return;
 
     if (Math.abs(distance) >= distanceDimen) {
       distance %= distanceDimen;
@@ -220,7 +221,7 @@ class Deck extends Component {
     this.handleSwipeStart({ x: touch.clientX, y: touch.clientY });
   }
   handleTouchMove(e) {
-    e.preventDefault();
+    //e.preventDefault();
     const touch = e.changedTouches[0];
     this.handleSwipeMove({ x: touch.clientX, y: touch.clientY });
   }
@@ -249,47 +250,47 @@ class Deck extends Component {
 
     const SWIPING = status & STATUS.SWIPING,
       FORWARDING = status & STATUS.FORWARDING,
-        CANCELING = status & STATUS.CANCELING,
-          UP = status & STATUS.UP,
-            DOWN = status & STATUS.DOWN,
-              NORMAL = status === STATUS.NORMAL;
+      CANCELING = status & STATUS.CANCELING,
+      UP = status & STATUS.UP,
+      DOWN = status & STATUS.DOWN,
+      NORMAL = status === STATUS.NORMAL;
 
-              let slidesProps = Children.map(slides, (slide, index) => ({
-                done: NORMAL,
-                key: index,
-                [index < current ? 'before' : index === current ? 'current' : 'after']: true
-              }));
-              let prevSlideProps = slidesProps[prev], currentSlideProps = slidesProps[current];
+    let slidesProps = Children.map(slides, (slide, index) => ({
+      done: NORMAL,
+      key: index,
+      [index < current ? 'before' : index === current ? 'current' : 'after']: true
+    }));
+    let prevSlideProps = slidesProps[prev], currentSlideProps = slidesProps[current];
 
 
-              currentSlideProps.current = prevSlideProps.prev = true;
+    currentSlideProps.current = prevSlideProps.prev = true;
 
-              if (prev !== current && !NORMAL) {
-                let prevFactor = 0;
-                let currentFactor = current > prev ? 1 : -1;
-                if (CANCELING && DOWN) {
-                  currentFactor = 0;
-                  prevFactor = 1;
-                } else if (CANCELING && UP) {
-                  currentFactor = 0;
-                  prevFactor = -1;
-                }
-                if (loop) {
-                  if (SWIPING && DOWN) {
-                    currentFactor = 1;
-                  } else if (SWIPING && UP) {
-                    currentFactor = -1;
-                  } else if (FORWARDING && DOWN) {
-                    currentFactor = 1;
-                  } else if (FORWARDING && UP) {
-                    currentFactor = -1;
-                  }
-                }
-                prevSlideProps.style = this.setSlideStyle(prevFactor);
-                currentSlideProps.style = this.setSlideStyle(currentFactor);
-              }
-              currentSlideProps.ref = CURRENT_SLIDE_REF;
-              return slidesProps.map((props, index) => React.cloneElement(slides[index], props));
+    if (prev !== current && !NORMAL) {
+      let prevFactor = 0;
+      let currentFactor = current > prev ? 1 : -1;
+      if (CANCELING && DOWN) {
+        currentFactor = 0;
+        prevFactor = 1;
+      } else if (CANCELING && UP) {
+        currentFactor = 0;
+        prevFactor = -1;
+      }
+      if (loop) {
+        if (SWIPING && DOWN) {
+          currentFactor = 1;
+        } else if (SWIPING && UP) {
+          currentFactor = -1;
+        } else if (FORWARDING && DOWN) {
+          currentFactor = 1;
+        } else if (FORWARDING && UP) {
+          currentFactor = -1;
+        }
+      }
+      prevSlideProps.style = this.setSlideStyle(prevFactor);
+      currentSlideProps.style = this.setSlideStyle(currentFactor);
+    }
+    currentSlideProps.ref = CURRENT_SLIDE_REF;
+    return slidesProps.map((props, index) => React.cloneElement(slides[index], props));
   }
 
   render() {

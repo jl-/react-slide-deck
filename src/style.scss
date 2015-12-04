@@ -11,6 +11,7 @@
   width: 100%;
   height: 100%;
   backface-visibility: hidden;
+  overflow: hidden;
 }
 .deck > .slide--current {
   transform: translate3d(0,0,0);
@@ -29,3 +30,4 @@
 .deck--vertical > .slide--after {
   transform: translate3d(0,100%,0);
 }
+
