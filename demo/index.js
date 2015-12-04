@@ -8,7 +8,7 @@ import './index.scss';
 class Demo extends Component {
   render() {
     return (
-      <Deck horizontal loop swipe current={0}>
+      <Deck vertical loop  swipe current={0}>
         <Slide className='primary'>hello</Slide>
         <Slide className='second'>hi</Slide>
         <Slide className='third'><div className='long-content'>long content for scroll test</div></Slide>

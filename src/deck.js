@@ -123,11 +123,10 @@ class Deck extends Component {
     this.tween.resume();
   }
 
-  isCurrentSlideScrolling({ delta }) {
+  isCurrentSlideScrolling({ delta, horizontal = false }) {
     const currentSlideDom = ReactDOM.findDOMNode(this.refs[CURRENT_SLIDE_REF]);
     const { offsetWidth, scrollLeft, scrollWidth, offsetHeight, scrollTop, scrollHeight } = currentSlideDom;
-    //const sizes = this.props.horizontal ? [offsetWidth, scrollLeft, scrollWidth] : [offsetHeight, scrollTop, scrollHeight];
-    const sizes = [offsetHeight, scrollTop, scrollHeight];
+    const sizes = horizontal ? [offsetWidth, scrollLeft, scrollWidth] : [offsetHeight, scrollTop, scrollHeight];
 
     if (delta > 0 && sizes[0] + sizes[1] < sizes[2]) return true;
     if (delta < 0 && sizes[1] > 0) return true;
@@ -183,7 +182,7 @@ class Deck extends Component {
     let yDiff = Math.abs(y - oriY);
     const swipeDirectionOk = (xDiff >= SWIPE_MIN_DISTANCE || yDiff >= SWIPE_MIN_DISTANCE) && (xDiff >= yDiff ? horizontal : vertical);
     if (!swipeDirectionOk) return false;
-    if (this.isCurrentSlideScrolling({ delta: -gear })) return false;
+    if (this.isCurrentSlideScrolling({ delta: (gear > 0 ? -1 : 1) * (horizontal ? yDiff: xDiff), horizontal })) return false;
 
     if (status === STATUS.SWIPE_STARTED || status & STATUS.CANCELING) {
       prev = current;
