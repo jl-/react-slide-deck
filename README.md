@@ -18,8 +18,12 @@ also open on touch device, see the swipe effect
 ```
 bower install
 gulp dev
-
 // then open localhost:3003
+```
+
+## build
+```
+gulp build
 ```
 
 ---
