@@ -48,7 +48,7 @@ class Deck extends Component {
   constructor(props, context) {
     super(props, context);
     let { current } = props;
-    this.state = { current, prev: current + 1, status: STATUS.NORMAL };
+    this.state = { current, prev: this.normalizeIndex(current + 1), status: STATUS.NORMAL };
     this.tween = new Tween();
     this.tween.ease(props.easing).duration(props.dura || SWIPE_DURA)
     .on('started', ::this.onSwitchStarted)
@@ -256,6 +256,7 @@ class Deck extends Component {
     let { children: slides, horizontal, vertical, loop } = this.props;
     let { prev, current, status } = this.state;
     let slidesCount = Children.count(slides), lastIndex = slidesCount - 1;
+    !Array.isArray(slides) && (slides = [slides]);
 
     const SWIPING = status & STATUS.SWIPING,
       FORWARDING = status & STATUS.FORWARDING,

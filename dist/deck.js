@@ -149,7 +149,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _get(Object.getPrototypeOf(Deck.prototype), 'constructor', this).call(this, props, context);
 	    var current = props.current;
 	
-	    this.state = { current: current, prev: current + 1, status: STATUS.NORMAL };
+	    this.state = { current: current, prev: this.normalizeIndex(current + 1), status: STATUS.NORMAL };
 	    this.tween = new _tween2['default']();
 	    this.tween.ease(props.easing).duration(props.dura || SWIPE_DURA).on('started', this.onSwitchStarted.bind(this)).on('updating', this.onSwitching.bind(this)).on('stopped', this.onSwitchStopped.bind(this)).on('paused', this.onSwitchPaused.bind(this)).on('done', this.onSwitchDone.bind(this));
 	  }
@@ -490,6 +490,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var slidesCount = _react.Children.count(slides),
 	          lastIndex = slidesCount - 1;
+	      !Array.isArray(slides) && (slides = [slides]);
 	
 	      var SWIPING = status & STATUS.SWIPING,
 	          FORWARDING = status & STATUS.FORWARDING,
