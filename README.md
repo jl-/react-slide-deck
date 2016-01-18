@@ -3,6 +3,8 @@ with animation hooks. tweening, tween callbacks. works on PC and touch devices
 
 ---
 
+** NOTEICE: since 0.1.1, pass `swipe` prop to `Deck` only enable|disable swipe functionality, not including wheel control, which requires a seperated `wheel` prop **
+
 
 ## `npm i react-slide-deck --save`
 
@@ -95,8 +97,11 @@ class Demo extends Component {
 
 ```js
 <Deck
+  current // current slide index
   horizontal|vertical // direction for the slides
-  swipe // can scroll(mousewheel) or not; on touch devices, it is touch event
+  wheel // can be control by wheel or not
+  swipe // can swipe or not for touch devices
+  animate // boolean, should apply animation for indicator click switch or not, see demo link
   factor // swipe distance used to determine whether to swipe forward or abort on touch devices.
          // if (swipeDistance / width(or height for vertical)) > factor, then will switch to next slide, otherwise return to the current slide.
   loop //  scroll down on the last Deck.Slide => transition to the first Deck.Slide.(first => last as well). only work when `swipe` is set

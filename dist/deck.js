@@ -59,6 +59,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *    vertical|horizontal
 	 *    loop
 	 *    swipe
+	 *    wheel
+	 *    animate
 	 *    dura=1400
 	 *    factor=0.4
 	 *    current=2
@@ -137,7 +139,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  FORWARDING: 4,
 	  CANCELING: 8,
 	  UP: 16,
-	  DOWN: 32
+	  DOWN: 32,
+	  SWIPED: 64,
+	  WHEELING: 128
 	};
 	
 	var Deck = (function (_Component) {
@@ -176,13 +180,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'componentWillReceiveProps',
 	    value: function componentWillReceiveProps(nextProps) {
 	      var status = this.state.status;
-	      if (status === STATUS.NORMAL) {
-	        var prev = this.state.current;
-	        var current = this.normalizeIndex(nextProps.current);
-	        if (prev !== current) {
+	      if (status & STATUS.SWIPED || status & STATUS.WHEELING) return;
+	      var prev = this.state.current;
+	      var current = this.normalizeIndex(nextProps.current);
+	      if (prev !== current) {
+	        if (nextProps.animate !== false) {
 	          status = STATUS.FORWARDING | (prev < current ? STATUS.DOWN : STATUS.UP);
 	          this.setState({ prev: prev, current: current, status: status });
 	          this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
+	        } else {
+	          this.setState({ prev: prev, current: current, status: STATUS.NORMAL });
+	          this.onSwitchDone();
 	        }
 	      }
 	    }
@@ -308,7 +316,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      current = loop ? (current + slidesCount) % slidesCount : current;
 	
 	      if (current >= 0 && current < slidesCount) {
-	        status = STATUS.FORWARDING | (delta > 0 ? STATUS.DOWN : STATUS.UP);
+	        status = STATUS.WHEELING | STATUS.FORWARDING | (delta > 0 ? STATUS.DOWN : STATUS.UP);
 	        this.setState({ prev: prev, current: current, status: status });
 	        this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
 	      }
@@ -419,14 +427,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var _ref7 = [prev, current];
 	        current = _ref7[0];
 	        prev = _ref7[1];
-	      }status = (shouldForward ? STATUS.FORWARDING : STATUS.CANCELING) | (distance > 0 ? STATUS.UP : STATUS.DOWN);
+	      }status = STATUS.SWIPED | (shouldForward ? STATUS.FORWARDING : STATUS.CANCELING) | (distance > 0 ? STATUS.UP : STATUS.DOWN);
 	
 	      this.setState({ prev: prev, current: current, status: status });
 	      this.startTran(distance, shouldForward ? (distance > 0 ? 1 : -1) * (horizontal ? width : height) : 0);
 	    }
 	  }, {
 	    key: 'handleSwipeCancel',
-	    value: function handleSwipeCancel() {}
+	    value: function handleSwipeCancel() {
+	      this.setState({ status: STATUS.NORMAL });
+	    }
 	
 	    // For touch events
 	  }, {
@@ -551,12 +561,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var horizontal = _props6.horizontal;
 	      var loop = _props6.loop;
 	      var swipe = _props6.swipe;
+	      var wheel = _props6.wheel;
 	      var className = _props6.className;
 	
-	      var props = _objectWithoutProperties(_props6, ['children', 'current', 'vertical', 'horizontal', 'loop', 'swipe', 'className']);
+	      var props = _objectWithoutProperties(_props6, ['children', 'current', 'vertical', 'horizontal', 'loop', 'swipe', 'wheel', 'className']);
 	
-	      if (swipe) {
+	      if (wheel) {
 	        props.onWheel = this.handleWheel.bind(this);
+	      }
+	      if (swipe) {
 	        props.onTouchStart = this.handleTouchStart.bind(this);
 	        props.onTouchMove = this.handleTouchMove.bind(this);
 	        props.onTouchEnd = this.handleTouchEnd.bind(this);
@@ -1359,8 +1372,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function render() {
 	      var _props = this.props;
 	      var children = _props.children;
-	      var _props$tag = _props.tag;
-	      var tag = _props$tag === undefined ? 'div' : _props$tag;
+	      var _props$component = _props.component;
+	      var component = _props$component === undefined ? 'div' : _props$component;
 	      var current = _props.current;
 	      var before = _props.before;
 	      var prev = _props.prev;
@@ -1368,7 +1381,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var className = _props.className;
 	      var done = _props.done;
 	
-	      var props = _objectWithoutProperties(_props, ['children', 'tag', 'current', 'before', 'prev', 'after', 'className', 'done']);
+	      var props = _objectWithoutProperties(_props, ['children', 'component', 'current', 'before', 'prev', 'after', 'className', 'done']);
 	
 	      props.className = (0, _classnames2['default'])({
 	        'slide--current': current && done,
@@ -1378,7 +1391,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        'slide--prev': prev && done,
 	        'slide--prev-leaving': prev && !done
 	      }, className, 'slide');
-	      return _react2['default'].createElement(tag, props, children);
+	      return _react2['default'].createElement(component, props, children);
 	    }
 	  }]);
 	

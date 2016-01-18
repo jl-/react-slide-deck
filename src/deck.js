@@ -3,6 +3,8 @@
  *    vertical|horizontal
  *    loop
  *    swipe
+ *    wheel
+ *    animate
  *    dura=1400
  *    factor=0.4
  *    current=2
@@ -41,7 +43,9 @@ const STATUS = {
   FORWARDING: 4,
   CANCELING: 8,
   UP: 16,
-  DOWN: 32
+  DOWN: 32,
+  SWIPED: 64,
+  WHEELING: 128
 };
 
 class Deck extends Component {
@@ -71,13 +75,17 @@ class Deck extends Component {
   }
   componentWillReceiveProps(nextProps) {
     let status = this.state.status;
-    if (status === STATUS.NORMAL) {
-      let prev = this.state.current;
-      let current = this.normalizeIndex(nextProps.current);
-      if (prev !== current) {
+    if (status & STATUS.SWIPED || status & STATUS.WHEELING) return;
+    let prev = this.state.current;
+    let current = this.normalizeIndex(nextProps.current);
+    if (prev !== current) {
+      if (nextProps.animate !== false) {
         status = STATUS.FORWARDING | (prev < current ? STATUS.DOWN : STATUS.UP);
         this.setState({ prev, current, status });
         this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
+      } else {
+        this.setState({ prev, current, status: STATUS.NORMAL });
+        this.onSwitchDone();
       }
     }
   }
@@ -149,7 +157,7 @@ class Deck extends Component {
     current = loop ? (current + slidesCount) % slidesCount : current;
 
     if (current >= 0 && current < slidesCount) {
-      status = STATUS.FORWARDING | (delta > 0 ? STATUS.DOWN : STATUS.UP);
+      status = STATUS.WHEELING | STATUS.FORWARDING | (delta > 0 ? STATUS.DOWN : STATUS.UP);
       this.setState({ prev, current, status });
       this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
     }
@@ -216,12 +224,13 @@ class Deck extends Component {
     let shouldForward = distance * gear >= 0 && (Math.abs(distance) / (horizontal ? width : height) >= factor || Math.abs(gear) >= speed);
 
     if (!shouldForward) [current, prev] = [prev, current];
-    status = (shouldForward ? STATUS.FORWARDING : STATUS.CANCELING) | (distance > 0 ? STATUS.UP : STATUS.DOWN);
+    status = STATUS.SWIPED | (shouldForward ? STATUS.FORWARDING : STATUS.CANCELING) | (distance > 0 ? STATUS.UP : STATUS.DOWN);
 
     this.setState({ prev, current, status });
     this.startTran(distance, shouldForward ? (distance > 0 ? 1 : -1)  * (horizontal ? width : height) : 0);
   }
   handleSwipeCancel() {
+    this.setState({ status: STATUS.NORMAL });
   }
 
   // For touch events
@@ -304,9 +313,11 @@ class Deck extends Component {
   }
 
   render() {
-    let { children, current, vertical, horizontal, loop, swipe, className, ...props } = this.props;
-    if (swipe) {
+    let { children, current, vertical, horizontal, loop, swipe, wheel, className, ...props } = this.props;
+    if (wheel) {
       props.onWheel = ::this.handleWheel;
+    }
+    if (swipe) {
       props.onTouchStart = ::this.handleTouchStart;
       props.onTouchMove = ::this.handleTouchMove;
       props.onTouchEnd = ::this.handleTouchEnd;
@@ -326,3 +337,4 @@ class Deck extends Component {
 Deck.STATUS = STATUS;
 Deck.Slide = Slide;
 export default Deck;
+

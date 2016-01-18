@@ -4,7 +4,7 @@ import cns from 'classnames';
 
 class Slide extends Component {
   render() {
-    let { children, tag = 'div', current, before, prev, after, className, done, ...props } = this.props;
+    let { children, component = 'div', current, before, prev, after, className, done, ...props } = this.props;
     props.className = cns({
       'slide--current': current && done,
       'slide--current-entering': current && !done,
@@ -13,7 +13,7 @@ class Slide extends Component {
       'slide--prev': prev && done,
       'slide--prev-leaving': prev && !done
     }, className, 'slide');
-    return React.createElement(tag, props, children);
+    return React.createElement(component, props, children);
   }
 }
 
