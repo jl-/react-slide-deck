@@ -54,49 +54,15 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * <Deck
-	 *    vertical|horizontal
-	 *    loop
-	 *    swipe
-	 *    wheel
-	 *    animate
-	 *    dura=1400
-	 *    factor=0.4
-	 *    current=2
-	 *    easing=function(currentTime/duration)||string
-	 *    onSwitching
-	 *    onSwitchDone
-	 *  >
-	 *  <Deck.Slide>
-	 *  </Deck.Slide>
-	 *
-	 *  <Deck.Slide>
-	 *  </Deck.Slide>
-	 * </Deck>
-	 *
-	 */
 	'use strict';
 	
-	Object.defineProperty(exports, '__esModule', {
+	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 	
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-	
-	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-	
-	function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
-	
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	var _react = __webpack_require__(1);
 	
@@ -118,13 +84,47 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _raf2 = _interopRequireDefault(_raf);
 	
-	var _slide = __webpack_require__(10);
+	var _slide = __webpack_require__(11);
 	
 	var _slide2 = _interopRequireDefault(_slide);
 	
-	var _styleScss = __webpack_require__(11);
+	var _style = __webpack_require__(12);
 	
-	var _styleScss2 = _interopRequireDefault(_styleScss);
+	var _style2 = _interopRequireDefault(_style);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+	
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * <Deck
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *    vertical|horizontal
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *    loop
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *    swipe
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *    wheel
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *    animate
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *    dura=1400
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *    factor=0.4
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *    current=2
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *    easing=function(currentTime/duration)||string
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *    onSwitching
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *    onSwitchDone
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  >
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  <Deck.Slide>
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  </Deck.Slide>
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  <Deck.Slide>
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *  </Deck.Slide>
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * </Deck>
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+	
 	
 	var SWIPE_DURA = 1000; // default transition duration
 	var SWIPE_MIN_DISTANCE = 0;
@@ -144,18 +144,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	  WHEELING: 128
 	};
 	
-	var Deck = (function (_Component) {
+	var Deck = function (_Component) {
 	  _inherits(Deck, _Component);
 	
 	  function Deck(props, context) {
 	    _classCallCheck(this, Deck);
 	
-	    _get(Object.getPrototypeOf(Deck.prototype), 'constructor', this).call(this, props, context);
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Deck).call(this, props, context));
+	
 	    var current = props.current;
 	
-	    this.state = { current: current, prev: this.normalizeIndex(current + 1), status: STATUS.NORMAL };
-	    this.tween = new _tween2['default']();
-	    this.tween.ease(props.easing).duration(props.dura || SWIPE_DURA).on('started', this.onSwitchStarted.bind(this)).on('updating', this.onSwitching.bind(this)).on('stopped', this.onSwitchStopped.bind(this)).on('paused', this.onSwitchPaused.bind(this)).on('done', this.onSwitchDone.bind(this));
+	    _this.state = { current: current, prev: _this.normalizeIndex(current + 1), status: STATUS.NORMAL };
+	    _this.tween = new _tween2.default();
+	    _this.tween.ease(props.easing).duration(props.dura || SWIPE_DURA).on('started', _this.onSwitchStarted.bind(_this)).on('updating', _this.onSwitching.bind(_this)).on('stopped', _this.onSwitchStopped.bind(_this)).on('paused', _this.onSwitchPaused.bind(_this)).on('done', _this.onSwitchDone.bind(_this));
+	    return _this;
 	  }
 	
 	  _createClass(Deck, [{
@@ -203,7 +205,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'calcDimension',
 	    value: function calcDimension() {
-	      var dom = _reactDom2['default'].findDOMNode(this);
+	      var dom = _reactDom2.default.findDOMNode(this);
 	      this.setState({
 	        width: dom.offsetWidth,
 	        height: dom.offsetHeight
@@ -212,36 +214,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'onSwitchStarted',
 	    value: function onSwitchStarted() {
-	      var _this = this;
+	      var _this2 = this;
 	
 	      var callback = this.props.onSwitchStarted;
-	      callback && (0, _raf2['default'])(function () {
-	        return callback.call(_this, _this.state);
+	      callback && (0, _raf2.default)(function () {
+	        return callback.call(_this2, _this2.state);
 	      });
 	    }
 	  }, {
 	    key: 'onSwitching',
-	    value: function onSwitching(_ref2) {
-	      var _this2 = this;
+	    value: function onSwitching(_ref) {
+	      var _this3 = this;
 	
-	      var distance = _ref2.distance;
-	      var factor = _ref2.factor;
+	      var distance = _ref.distance;
+	      var factor = _ref.factor;
 	
 	      this.setState({ distance: distance });
 	      var callback = this.props.onSwitching;
-	      callback && (0, _raf2['default'])(function () {
-	        return callback.call(_this2, factor || Math.abs(distance) / (_this2.props.horizontal ? _this2.state.width : _this2.state.height), _this2);
+	      callback && (0, _raf2.default)(function () {
+	        return callback.call(_this3, factor || Math.abs(distance) / (_this3.props.horizontal ? _this3.state.width : _this3.state.height), _this3);
 	      });
 	    }
 	  }, {
 	    key: 'onSwitchDone',
 	    value: function onSwitchDone(props) {
-	      var _this3 = this;
+	      var _this4 = this;
 	
 	      this.setState({ distance: 0, status: STATUS.NORMAL });
 	      var callback = this.props.onSwitchDone;
-	      callback && (0, _raf2['default'])(function () {
-	        return callback.call(_this3, _this3.state);
+	      callback && (0, _raf2.default)(function () {
+	        return callback.call(_this4, _this4.state);
 	      });
 	    }
 	  }, {
@@ -270,12 +272,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'isCurrentSlideScrolling',
-	    value: function isCurrentSlideScrolling(_ref3) {
-	      var delta = _ref3.delta;
-	      var _ref3$horizontal = _ref3.horizontal;
-	      var horizontal = _ref3$horizontal === undefined ? false : _ref3$horizontal;
+	    value: function isCurrentSlideScrolling(_ref2) {
+	      var delta = _ref2.delta;
+	      var _ref2$horizontal = _ref2.horizontal;
+	      var horizontal = _ref2$horizontal === undefined ? false : _ref2$horizontal;
 	
-	      var currentSlideDom = _reactDom2['default'].findDOMNode(this.refs[CURRENT_SLIDE_REF]);
+	      var currentSlideDom = _reactDom2.default.findDOMNode(this.refs[CURRENT_SLIDE_REF]);
 	      var offsetWidth = currentSlideDom.offsetWidth;
 	      var scrollLeft = currentSlideDom.scrollLeft;
 	      var scrollWidth = currentSlideDom.scrollWidth;
@@ -323,18 +325,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'handleSwipeStart',
-	    value: function handleSwipeStart(_ref4) {
-	      var x = _ref4.x;
-	      var y = _ref4.y;
+	    value: function handleSwipeStart(_ref3) {
+	      var x = _ref3.x;
+	      var y = _ref3.y;
 	
 	      this.tween.stop();
 	      this.setState({ oriX: x, oriY: y, status: this.state.status | STATUS.SWIPE_STARTED });
 	    }
 	  }, {
 	    key: 'handleSwipeMove',
-	    value: function handleSwipeMove(_ref5) {
-	      var x = _ref5.x;
-	      var y = _ref5.y;
+	    value: function handleSwipeMove(_ref4) {
+	      var x = _ref4.x;
+	      var y = _ref4.y;
 	
 	      var status = this.state.status;
 	      if (!(status & STATUS.SWIPING || status & STATUS.SWIPE_STARTED)) return;
@@ -394,9 +396,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'handleSwipeEnd',
-	    value: function handleSwipeEnd(_ref6) {
-	      var x = _ref6.x;
-	      var y = _ref6.y;
+	    value: function handleSwipeEnd(_ref5) {
+	      var x = _ref5.x;
+	      var y = _ref5.y;
 	      var _props3 = this.props;
 	      var horizontal = _props3.horizontal;
 	      var vertical = _props3.vertical;
@@ -424,9 +426,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      if (!shouldForward) {
 	        ;
-	        var _ref7 = [prev, current];
-	        current = _ref7[0];
-	        prev = _ref7[1];
+	        var _ref6 = [prev, current];
+	        current = _ref6[0];
+	        prev = _ref6[1];
 	      }status = STATUS.SWIPED | (shouldForward ? STATUS.FORWARDING : STATUS.CANCELING) | (distance > 0 ? STATUS.UP : STATUS.DOWN);
 	
 	      this.setState({ prev: prev, current: current, status: status });
@@ -439,6 +441,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	
 	    // For touch events
+	
 	  }, {
 	    key: 'handleTouchStart',
 	    value: function handleTouchStart(e) {
@@ -546,7 +549,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      currentSlideProps.ref = CURRENT_SLIDE_REF;
 	      return slidesProps.map(function (props, index) {
-	        return _react2['default'].cloneElement(slides[index], props);
+	        return _react2.default.cloneElement(slides[index], props);
 	      });
 	    }
 	  }, {
@@ -574,8 +577,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        props.onTouchMove = this.handleTouchMove.bind(this);
 	        props.onTouchEnd = this.handleTouchEnd.bind(this);
 	      }
-	      className = (0, _classnames2['default'])((_cns = {}, _defineProperty(_cns, className, !!className), _defineProperty(_cns, 'deck--horizontal', horizontal), _defineProperty(_cns, 'deck--vertical', vertical), _cns), 'deck');
-	      return _react2['default'].createElement(
+	      className = (0, _classnames2.default)((_cns = {}, _defineProperty(_cns, className, !!className), _defineProperty(_cns, 'deck--horizontal', horizontal), _defineProperty(_cns, 'deck--vertical', vertical), _cns), 'deck');
+	      return _react2.default.createElement(
 	        'div',
 	        _extends({ className: className }, props),
 	        this.updateSlides()
@@ -584,12 +587,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }]);
 	
 	  return Deck;
-	})(_react.Component);
+	}(_react.Component);
 	
 	Deck.STATUS = STATUS;
-	Deck.Slide = _slide2['default'];
-	exports['default'] = Deck;
-	module.exports = exports['default'];
+	Deck.Slide = _slide2.default;
+	exports.default = Deck;
 
 /***/ },
 /* 1 */
@@ -607,28 +609,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * let tween = new Tween({});
-	 * tween.reset({})
-	 *      .to({})
-	 *      .on('update', function(){})
-	 *      .on('end', function(){});
-	 */
 	'use strict';
 	
-	Object.defineProperty(exports, '__esModule', {
+	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 	
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-	
-	var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	var _flatEvent = __webpack_require__(4);
 	
@@ -642,6 +629,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _ease3 = _interopRequireDefault(_ease2);
 	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * let tween = new Tween({});
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * tween.reset({})
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *      .to({})
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *      .on('update', function(){})
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *      .on('end', function(){});
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+	
+	
 	var STATUS = {
 	  INIT: 0,
 	  DONE: 1,
@@ -650,14 +652,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  PAUSED: 4
 	};
 	
-	var Tween = (function (_FlatEvent) {
+	var Tween = function (_FlatEvent) {
 	  _inherits(Tween, _FlatEvent);
 	
 	  function Tween(from, easing, duration) {
 	    _classCallCheck(this, Tween);
 	
-	    _get(Object.getPrototypeOf(Tween.prototype), 'constructor', this).call(this);
-	    this.reset(from).ease(easing).duration(duration);
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Tween).call(this));
+	
+	    _this.reset(from).ease(easing).duration(duration);
+	    return _this;
 	  }
 	
 	  _createClass(Tween, [{
@@ -685,9 +689,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'ease',
 	    value: function ease() {
-	      var fn = arguments.length <= 0 || arguments[0] === undefined ? _ease3['default'].outQuint : arguments[0];
+	      var fn = arguments.length <= 0 || arguments[0] === undefined ? _ease3.default.outQuint : arguments[0];
 	
-	      fn = typeof fn === 'function' ? fn : _ease3['default'][fn];
+	      fn = typeof fn === 'function' ? fn : _ease3.default[fn];
 	      if (!fn) throw new TypeError('invalid easing function');
 	      this._ease = fn;
 	      return this;
@@ -725,7 +729,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'stop',
 	    value: function stop() {
 	      if (this._status !== STATUS.RUNNING) return;
-	      _raf2['default'].cancel(this._raf);
+	      _raf2.default.cancel(this._raf);
 	      this._status = STATUS.STOPPED;
 	      this.emit('stopped', this._curr);
 	      return this;
@@ -734,7 +738,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'pause',
 	    value: function pause() {
 	      if (this._status !== STATUS.RUNNING) return;
-	      _raf2['default'].cancel(this._raf);
+	      _raf2.default.cancel(this._raf);
 	      this._status = STATUS.PAUSED;
 	      this.emit('paused', this._curr);
 	      return this;
@@ -748,7 +752,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else {
 	        this._lasted = lasted;
 	        this._latest = Date.now();
-	        this._raf = (0, _raf2['default'])(this.iterate.bind(this));
+	        this._raf = (0, _raf2.default)(this.iterate.bind(this));
 	      }
 	      return this.step();
 	    }
@@ -760,7 +764,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this._status = STATUS.RUNNING;
 	      this._latest = Date.now();
-	      this._raf = (0, _raf2['default'])(this.iterate.bind(this));
+	      this._raf = (0, _raf2.default)(this.iterate.bind(this));
 	      this.emit('resumed');
 	      return this;
 	    }
@@ -771,7 +775,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      this._status = STATUS.RUNNING;
 	      this._latest = Date.now();
-	      this._raf = (0, _raf2['default'])(this.iterate.bind(this));
+	      this._raf = (0, _raf2.default)(this.iterate.bind(this));
 	
 	      this._start = this._latest;
 	      this.emit('started');
@@ -780,12 +784,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }]);
 	
 	  return Tween;
-	})(_flatEvent2['default']);
+	}(_flatEvent2.default);
 	
-	Tween.ease = _ease3['default'];
+	Tween.ease = _ease3.default;
 	
-	exports['default'] = Tween;
-	module.exports = exports['default'];
+	exports.default = Tween;
 
 /***/ },
 /* 4 */
@@ -797,11 +800,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var FlatEvent = (function () {
+	var FlatEvent = function () {
 	  function FlatEvent() {
 	    _classCallCheck(this, FlatEvent);
 	
@@ -818,18 +821,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: "off",
 	    value: function off() {
-	      for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
-	        params[_key] = arguments[_key];
-	      }
-	
-	      var event = params[0];
-	      if (params.length === 0) {
+	      var event = arguments.length <= 0 ? undefined : arguments[0];
+	      if (arguments.length === 0) {
 	        this.$events = {};
-	      } else if (params.length === 1) {
+	      } else if (arguments.length === 1) {
 	        delete this.$events[event];
 	      } else {
 	        var listeners = this.$events[event] || (this.$events[event] = []);
-	        var index = listeners.indexOf(params[1]);
+	        var index = listeners.indexOf(arguments.length <= 1 ? undefined : arguments[1]);
 	        index !== -1 && listeners.splice(index, 1);
 	      }
 	      return this;
@@ -839,8 +838,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function emit(event) {
 	      var _this = this;
 	
-	      for (var _len2 = arguments.length, params = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-	        params[_key2 - 1] = arguments[_key2];
+	      for (var _len = arguments.length, params = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	        params[_key - 1] = arguments[_key];
 	      }
 	
 	      var listeners = this.$events[event] || (this.$events[event] = []);
@@ -852,10 +851,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }]);
 	
 	  return FlatEvent;
-	})();
+	}();
 	
-	exports["default"] = FlatEvent;
-	module.exports = exports["default"];
+	exports.default = FlatEvent;
 
 /***/ },
 /* 5 */
@@ -882,7 +880,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      queue = [],
 	      frameDuration = 1000 / 60;
 	
-	  raf = function (callback) {
+	  raf = function raf(callback) {
 	    if (queue.length === 0) {
 	      var _now = now(),
 	          next = Math.max(0, frameDuration - (_now - last));
@@ -914,7 +912,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return id;
 	  };
 	
-	  caf = function (handle) {
+	  caf = function caf(handle) {
 	    for (var i = 0; i < queue.length; i++) {
 	      if (queue[i].handle === handle) {
 	        queue[i].cancelled = true;
@@ -937,9 +935,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {// Generated by CoffeeScript 1.7.1
-	"use strict";
+	/* WEBPACK VAR INJECTION */(function(process) {"use strict";
 	
+	// Generated by CoffeeScript 1.7.1
 	(function () {
 	  var getNanoSeconds, hrtime, loadTime;
 	
@@ -952,7 +950,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return (getNanoSeconds() - loadTime) / 1e6;
 	    };
 	    hrtime = process.hrtime;
-	    getNanoSeconds = function () {
+	    getNanoSeconds = function getNanoSeconds() {
 	      var hr;
 	      hr = hrtime();
 	      return hr[0] * 1e9 + hr[1];
@@ -976,9 +974,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 7 */
 /***/ function(module, exports) {
 
-	// shim for using process in browser
-	
 	'use strict';
+	
+	// shim for using process in browser
 	
 	var process = module.exports = {};
 	var queue = [];
@@ -1266,55 +1264,56 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return n === 1 ? n : -Math.pow(2, -10 * n) + 1;
 	};
 	
-	exports["default"] = ease;
-	module.exports = exports["default"];
+	exports.default = ease;
 
 /***/ },
 /* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	  Copyright (c) 2015 Jed Watson.
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
+	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	
+	/*!
+	  Copyright (c) 2016 Jed Watson.
 	  Licensed under the MIT License (MIT), see
 	  http://jedwatson.github.io/classnames
 	*/
 	/* global define */
 	
-	'use strict';
-	
 	(function () {
 		'use strict';
 	
-		var hasOwn = ({}).hasOwnProperty;
+		var hasOwn = {}.hasOwnProperty;
 	
 		function classNames() {
-			var classes = '';
+			var classes = [];
 	
 			for (var i = 0; i < arguments.length; i++) {
 				var arg = arguments[i];
 				if (!arg) continue;
 	
-				var argType = typeof arg;
+				var argType = typeof arg === 'undefined' ? 'undefined' : _typeof(arg);
 	
 				if (argType === 'string' || argType === 'number') {
-					classes += ' ' + arg;
+					classes.push(arg);
 				} else if (Array.isArray(arg)) {
-					classes += ' ' + classNames.apply(null, arg);
+					classes.push(classNames.apply(null, arg));
 				} else if (argType === 'object') {
 					for (var key in arg) {
 						if (hasOwn.call(arg, key) && arg[key]) {
-							classes += ' ' + key;
+							classes.push(key);
 						}
 					}
 				}
 			}
 	
-			return classes.substr(1);
+			return classes.join(' ');
 		}
 	
 		if (typeof module !== 'undefined' && module.exports) {
 			module.exports = classNames;
-		} else if (true) {
+		} else if ("function" === 'function' && _typeof(__webpack_require__(10)) === 'object' && __webpack_require__(10)) {
 			// register as 'classnames', consistent with npm package name
 			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
 				return classNames;
@@ -1326,25 +1325,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 10 */
+/***/ function(module, exports) {
+
+	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	Object.defineProperty(exports, '__esModule', {
+	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 	
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-	
-	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-	
-	function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	var _react = __webpack_require__(1);
 	
@@ -1358,13 +1355,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
-	var Slide = (function (_Component) {
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Slide = function (_Component) {
 	  _inherits(Slide, _Component);
 	
 	  function Slide() {
 	    _classCallCheck(this, Slide);
 	
-	    _get(Object.getPrototypeOf(Slide.prototype), 'constructor', this).apply(this, arguments);
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(Slide).apply(this, arguments));
 	  }
 	
 	  _createClass(Slide, [{
@@ -1383,7 +1390,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var props = _objectWithoutProperties(_props, ['children', 'component', 'current', 'before', 'prev', 'after', 'className', 'done']);
 	
-	      props.className = (0, _classnames2['default'])({
+	      props.className = (0, _classnames2.default)({
 	        'slide--current': current && done,
 	        'slide--current-entering': current && !done,
 	        'slide--before': before,
@@ -1391,27 +1398,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	        'slide--prev': prev && done,
 	        'slide--prev-leaving': prev && !done
 	      }, className, 'slide');
-	      return _react2['default'].createElement(component, props, children);
+	      return _react2.default.createElement(component, props, children);
 	    }
 	  }]);
 	
 	  return Slide;
-	})(_react.Component);
+	}(_react.Component);
 	
-	exports['default'] = Slide;
-	module.exports = exports['default'];
+	exports.default = Slide;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(12);
+	var content = __webpack_require__(13);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(14)(content, {});
+	var update = __webpack_require__(15)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -1428,10 +1434,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(13)();
+	exports = module.exports = __webpack_require__(14)();
 	// imports
 	
 	
@@ -1442,16 +1448,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
+	"use strict";
+	
 	/*
 		MIT License http://www.opensource.org/licenses/mit-license.php
 		Author Tobias Koppers @sokra
 	*/
 	// css base code, injected by the css-loader
-	"use strict";
-	
 	module.exports = function () {
 		var list = [];
 	
@@ -1497,7 +1503,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*

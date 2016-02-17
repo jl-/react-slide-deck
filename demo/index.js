@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ReactDom from 'react-dom';
 
-import Deck, { Slide } from '../src/deck';
+import Deck from '../src/deck';
 
 import './index.scss';
 
@@ -9,11 +9,11 @@ class Demo extends Component {
   render() {
     return (
       <Deck vertical loop wheel swipe current={0}>
-        <Slide className='second'>hi</Slide>
-        <Slide className='third'><div className='long-content'>long content for scroll test</div></Slide>
-        <Slide className='fourth'>hi</Slide>
-        <Slide className='fifth'>hi</Slide>
-        <Slide className='primary'>hello</Slide>
+        <Deck.Slide className='second'>hi</Deck.Slide>
+        <Deck.Slide className='third'><div className='long-content'>long content for scroll test</div></Deck.Slide>
+        <Deck.Slide className='fourth'>hi</Deck.Slide>
+        <Deck.Slide className='fifth'>hi</Deck.Slide>
+        <Deck.Slide className='primary'>hello</Deck.Slide>
       </Deck>
     );
   }

@@ -9,8 +9,8 @@ const PATHS = {
   NODE_MODULES: path.resolve(__dirname, 'node_modules'),
   PUBLIC: '/'
 };
-const WEBPACK_HOST = process.env.HOST || 'localhost'
-const WEBPACK_PORT = process.env.PORT || 3003;
+export const WEBPACK_HOST = process.env.HOST || 'localhost'
+export const WEBPACK_PORT = process.env.PORT || 3003;
 
 let AUTOPREFIXER_CONF = [
   '{browsers:["last 5 version"]}'
@@ -37,7 +37,7 @@ let externals = {
   }
 };
 
-let build = {
+export const build = {
   entry: {
     src: './src/deck.js'
   },
@@ -63,7 +63,7 @@ let build = {
   externals: externals,
 };
 
-let demo = {
+export const demo = {
   entry: {
     demo: [
       'webpack-dev-server/client?http://' + WEBPACK_HOST + ':' + WEBPACK_PORT,
@@ -102,7 +102,7 @@ let demo = {
 }
 
 
-const devServerConf = {
+export const devServerConf = {
   contentBase: PATHS.DIST,
   publicPath: '/',
   historyApiFallback: true,
@@ -111,11 +111,3 @@ const devServerConf = {
     colors: true
   }
 };
-
-export default {
-  build,
-  demo,
-  devServerConf,
-  WEBPACK_HOST,
-  WEBPACK_PORT
-}
