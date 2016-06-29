@@ -118,9 +118,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	__webpack_require__(99);
 	
+	var _throttle = __webpack_require__(103);
+	
+	var _throttle2 = _interopRequireDefault(_throttle);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var SWIPE_DURA = 1000; // default transition duration
 	/**
 	 * <Deck
 	 *    vertical|horizontal
@@ -143,10 +146,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * </Deck>
 	 *
 	 */
+	
+	
+	var SWIPE_DURA = 1000; // default transition duration
 	var SWIPE_MIN_DISTANCE = 0;
 	var SWIPE_FACTOR = 0.22;
 	var FORWARD_SPEED = 6;
 	var CURRENT_SLIDE_REF = (0, _symbol2.default)('current slide');
+	
+	// really hacky to disable wheel event during scrolling
+	var WHEELABLE_AFTER_SCROLL_MS = 100;
+	var SCROLL_THROTTLE_MS = 100;
 	
 	var STATUS = {
 	  NORMAL: 0,
@@ -180,6 +190,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this.handleTouchEnd = _this.handleTouchEnd.bind(_this);
 	    _this.handleWheel = _this.handleWheel.bind(_this);
 	    _this.calcDimension = _this.calcDimension.bind(_this);
+	    _this.handleScroll = (0, _throttle2.default)(_this.handleScroll.bind(_this), SCROLL_THROTTLE_MS);
 	
 	    _this.tween = new _tween2.default();
 	    _this.tween.ease(easing).duration(dura).on('started', _this.onSwitchStarted.bind(_this)).on('updating', _this.onSwitching.bind(_this)).on('stopped', _this.onSwitchStopped.bind(_this)).on('paused', _this.onSwitchPaused.bind(_this)).on('done', _this.onSwitchDone.bind(_this));
@@ -343,7 +354,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'handleWheel',
 	    value: function handleWheel(e) {
-	      var delta = e.deltaY;
+	      var _props = this.props;
+	      var slides = _props.children;
+	      var loop = _props.loop;
+	      var horizontal = _props.horizontal;
+	
+	      var delta = horizontal ? e.deltaX : e.deltaY;
 	      var _state3 = this.state;
 	      var prevStatus = _state3.status;
 	      var _state3$prevWheelDelt = _state3.prevWheelDelta;
@@ -351,6 +367,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var status = STATUS.WHEELING | STATUS.FORWARDING | (delta > 0 ? STATUS.DOWN : STATUS.UP);
 	      Math.abs(delta) > 0 && this.setState({ prevWheelDelta: delta });
+	
+	      if (Date.now() - this.latestScroll <= WHEELABLE_AFTER_SCROLL_MS) {
+	        return;
+	      }
 	
 	      if (prevStatus & STATUS.WHEELING && delta * prevWheelDelta < 0) {
 	        this.setState({
@@ -363,12 +383,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      if (Math.abs(delta) / Math.abs(prevWheelDelta) <= 2) return;
 	
-	      if (prevStatus !== STATUS.NORMAL || delta === 0 || this.isCurrentSlideScrolling({ delta: delta })) return;
-	
-	      var _props = this.props;
-	      var slides = _props.children;
-	      var loop = _props.loop;
-	      var horizontal = _props.horizontal;
+	      if (prevStatus !== STATUS.NORMAL || delta === 0 || this.isCurrentSlideScrolling({ delta: delta, horizontal: horizontal })) return;
 	
 	      var slidesCount = _react.Children.count(slides);
 	      var prev = this.state.current;
@@ -610,6 +625,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	  }, {
+	    key: 'handleScroll',
+	    value: function handleScroll() {
+	      this.latestScroll = Date.now();
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
 	      var _props6 = this.props;
@@ -629,6 +649,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        props.onTouchMove = this.handleTouchMove;
 	        props.onTouchEnd = this.handleTouchEnd;
 	      }
+	      props.onScroll = this.handleScroll;
 	      props.className = (0, _classnames2.default)({
 	        'deck--horizontal': horizontal,
 	        'deck--vertical': vertical
@@ -3428,6 +3449,47 @@ return /******/ (function(modules) { // webpackBootstrap
 			URL.revokeObjectURL(oldSrc);
 	}
 
+
+/***/ },
+/* 103 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	/**
+	 * window.on('scroll', throttle(fn, 20, 200));
+	 */
+	function throttle(func, delay) {
+	  for (var _len = arguments.length, params = Array(_len > 4 ? _len - 4 : 0), _key = 4; _key < _len; _key++) {
+	    params[_key - 4] = arguments[_key];
+	  }
+	
+	  var mustRun = arguments.length <= 2 || arguments[2] === undefined ? delay : arguments[2];
+	  var context = arguments.length <= 3 || arguments[3] === undefined ? null : arguments[3];
+	
+	  var tid, firstInvokedAt;
+	  function wrapped() {
+	    for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+	      args[_key2] = arguments[_key2];
+	    }
+	
+	    clearTimeout(tid);
+	    var lastInvokedAt = Date.now();
+	    firstInvokedAt = firstInvokedAt || lastInvokedAt;
+	
+	    var remaining = mustRun - (lastInvokedAt - firstInvokedAt);
+	    tid = setTimeout(function () {
+	      firstInvokedAt = undefined;
+	      func.apply(context, params.concat(args));
+	    }, remaining > delay ? delay : remaining > 0 ? remaining : 0);
+	  }
+	  return wrapped;
+	}
+	
+	exports.default = throttle;
 
 /***/ }
 /******/ ])
