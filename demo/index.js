@@ -8,7 +8,7 @@ class Demo extends Component {
     super(props);
     this.state = {
       current: 0,
-      vertical: true,
+      horizontal: true,
       swipe: true,
       wheel: true,
       animate: true,
@@ -90,15 +90,15 @@ class Demo extends Component {
           onSwitchDone={this.onSwitchDone}
           dura={1000}
         >
-          <Deck.Slide className='bg-primary'>1</Deck.Slide>
-          <Deck.Slide className='bg-success'>
+          <Deck.Slide className='first'>1</Deck.Slide>
+          <Deck.Slide className='second'>
             <div className='entering'>current entering animation</div>
             <div className='entered'>current entered animation</div>
           </Deck.Slide>
-          <Deck.Slide className='bg-info'>
-            <h1 className='over-height'>The `Slide` is scrollable if its content overflow.</h1>
+          <Deck.Slide className='third'>
+            <h1 className='large-content'>The `Slide` is scrollable if its content overflow.</h1>
           </Deck.Slide>
-          <Deck.Slide className='bg-warning'>4</Deck.Slide>
+          <Deck.Slide className='fourth'>4</Deck.Slide>
         </Deck>
         <div className='metas-ctrls'>
           <div>

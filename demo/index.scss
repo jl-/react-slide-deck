@@ -81,25 +81,26 @@ html, body, .app, .demo, #demo {
 .entered {
   float: right;
 }
-.over-height {
+.first {
+  color: #fff;
+  background-color: #337ab7;
+}
+.second {
+  background-color: #dff0d8;
+}
+.third {
+  background-color: #d9edf7;
+}
+.fourth {
+  background-color: #fcf8e3;
+}
+.large-content {
+  width: 2000px;
   height: 2000px;
   line-height: 2000px;
   margin: 0;
 }
 
-.bg-primary {
-  color: #fff;
-  background-color: #337ab7;
-}
-.bg-success {
-  background-color: #dff0d8;
-}
-.bg-info {
-  background-color: #d9edf7;
-}
-.bg-warning {
-  background-color: #fcf8e3;
-}
 .btn {
   display: inline-block;
   padding: 6px 12px;

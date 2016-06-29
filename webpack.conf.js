@@ -7,6 +7,7 @@ export const WEBPACK_PORT = process.env.PORT || 3003;
 export const PATHS = {
   SRC: path.resolve(__dirname, 'src'),
   DEMO: path.resolve(__dirname, 'demo'),
+  UTILS: path.resolve(__dirname, 'utils'),
   DIST: path.resolve(__dirname, 'dist'),
   NODE_MODULES: path.resolve(__dirname, 'node_modules'),
   PUBLIC: '/'
@@ -24,6 +25,7 @@ const RESOLVE = {
   extensions: ['', '.js', '.jsx', '.css', '.scss', '.json'],
   modulesDirectories: ['node_modules', 'web_modules'],
   alias: {
+    utils: PATHS.UTILS
   }
 };
 
@@ -68,7 +70,7 @@ export const build = {
     loaders: [{
       test: /\.jsx?$/,
       loader: 'babel',
-      include: [PATHS.SRC]
+      include: [PATHS.SRC, PATHS.UTILS]
     }, {
       test: /\.(css|scss)$/,
       loader: `style!css?importLoaders=2!autoprefixer?${AUTOPREFIXER_CONF}!sass`,
@@ -102,7 +104,7 @@ export const demo = {
     loaders: [{
       test: /\.jsx?$/,
       loaders: ['react-hot', `babel`],
-      include: [PATHS.SRC, PATHS.DEMO, PATHS.DIST]
+      include: [PATHS.SRC, PATHS.DEMO, PATHS.DIST, PATHS.UTILS]
     }, {
       test: /\.(css|scss)$/,
       loader: `style!css?importLoaders=2!autoprefixer?${AUTOPREFIXER_CONF}!sass`,
@@ -152,7 +154,7 @@ export const githubPagesConf = {
     loaders: [{
       test: /\.jsx?$/,
       loaders: ['babel'],
-      include: [PATHS.SRC, PATHS.DEMO, PATHS.DIST]
+      include: [PATHS.SRC, PATHS.DEMO, PATHS.DIST, PATHS.UTILS]
     }, {
       test: /\.(css|scss)$/,
       loader: `style!css?importLoaders=1!sass`
