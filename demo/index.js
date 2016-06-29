@@ -88,7 +88,7 @@ class Demo extends Component {
           vertical={this.state.vertical}
           onSwitching={this.onSwitching}
           onSwitchDone={this.onSwitchDone}
-          dura={1600}
+          dura={1000}
         >
           <Deck.Slide className='bg-primary'>1</Deck.Slide>
           <Deck.Slide className='bg-success'>

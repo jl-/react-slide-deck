@@ -78,20 +78,17 @@ class Deck extends Component {
     return true;
   }
   componentWillReceiveProps(nextProps) {
-    const { status, current: prev } = this.state;
-    if (status & STATUS.SWIPED || status & STATUS.WHEELING) return;
+    const { current: prev, status: prevStatus } = this.state;
+    if (prevStatus & STATUS.SWIPED || prevStatus & STATUS.WHEELING) return;
     const current = this.normalizeIndex(nextProps.current);
-    if (prev !== current) {
-      if (nextProps.animate !== false) {
-        this.setState({
-          prev, current,
-          status: STATUS.FORWARDING | (prev < current ? STATUS.DOWN : STATUS.UP)
-        });
-        this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
-      } else {
-        this.setState({ prev, current, status: STATUS.NORMAL });
-        this.onSwitchDone();
-      }
+    if (prev === current) return;
+    if (prevStatus === STATUS.NORMAL && nextProps.animate !== false) {
+      const status = STATUS.FORWARDING | (prev < current ? STATUS.DOWN : STATUS.UP);
+      this.setState({ prev, current, status });
+      this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
+    } else {
+      this.setState({ prev, current, status: STATUS.NORMAL });
+      this.onSwitchDone();
     }
   }
   normalizeIndex(index) {
@@ -133,6 +130,14 @@ class Deck extends Component {
   startTran(from, to) {
     this.tween.reset({ distance: from }).to({ distance: to }).start();
   }
+  backTran() {
+    this.tween.back();
+  }
+  reverseTran() {
+    const { distance, width, height } = this.state;
+    const total = (distance > 0 ? 1 : -1) * (this.props.horizontal ? width : height);
+    this.tween.reset({ distance: this.state.distance - total }).to({ distance: -total }).start();
+  }
   resumeTran() {
     const status = this.state.status & (~STATUS.SWIPE_STARTED);
     this.setState({ status });
@@ -150,19 +155,30 @@ class Deck extends Component {
   }
   handleWheel(e) {
     const delta = e.deltaY;
-    let { status, prevWheelDelta = 1 } = this.state;
-    Math.abs(delta) > 0 && this.setState({ prevWheelDelta: delta });
+    const { status: prevStatus, prevWheelDelta = 1 } = this.state;
+    const status = STATUS.WHEELING | STATUS.FORWARDING | (delta > 0 ? STATUS.DOWN : STATUS.UP);
+    (Math.abs(delta) > 0) && this.setState({ prevWheelDelta: delta });
+
+    if ((prevStatus & STATUS.WHEELING) && delta * prevWheelDelta < 0) {
+      this.setState({
+        prev: this.state.current,
+        current: this.state.prev,
+        status
+      });
+      this.reverseTran();
+      return;
+    }
     if (Math.abs(delta) / Math.abs(prevWheelDelta) <= 2) return;
 
-    if (status !== STATUS.NORMAL || delta === 0 || this.isCurrentSlideScrolling({ delta })) return;
+    if (prevStatus !== STATUS.NORMAL || delta === 0 || this.isCurrentSlideScrolling({ delta })) return;
 
-    let { children: slides, loop, horizontal } = this.props;
-    let prev = this.state.current, current = prev + (delta > 0 ? 1 : -1);
-    let slidesCount = Children.count(slides);
+    const { children: slides, loop, horizontal } = this.props;
+    const slidesCount = Children.count(slides);
+    const prev = this.state.current;
+    let current = prev + (delta > 0 ? 1 : -1);
     current = loop ? (current + slidesCount) % slidesCount : current;
 
     if (current >= 0 && current < slidesCount) {
-      status = STATUS.WHEELING | STATUS.FORWARDING | (delta > 0 ? STATUS.DOWN : STATUS.UP);
       this.setState({ prev, current, status });
       this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
     }
@@ -263,52 +279,55 @@ class Deck extends Component {
     const transform = `translate3d(${dx}px, ${dy}px, 0)`;
     return { transform, WebkitTransform: transform };
   }
+
   renderSlides() {
     const { children, horizontal, vertical, loop } = this.props;
     const { prev, current, status } = this.state;
-    const slidesCount = Children.count(slides), lastIndex = slidesCount - 1;
     // const slides = Children.toArray(children);
     const slides = Array.isArray(children) ? children :  [children];
+    const slidesCount = Children.count(slides), lastIndex = slidesCount - 1;
 
-    const SWIPING = status & STATUS.SWIPING,
-      FORWARDING = status & STATUS.FORWARDING,
-      CANCELING = status & STATUS.CANCELING,
-      UP = status & STATUS.UP,
-      DOWN = status & STATUS.DOWN,
-      NORMAL = status === STATUS.NORMAL;
+    const isSwiping = status & STATUS.SWIPING,
+      isForwarding = status & STATUS.FORWARDING,
+      isCanceling = status & STATUS.CANCELING,
+      isUping = status & STATUS.UP,
+      isDowning = status & STATUS.DOWN,
+      isNormal = status === STATUS.NORMAL;
 
     const slidesProps = Children.map(slides, (slide, index) => ({
-      key: index, done: NORMAL,
-      [index < current ? 'before' : index === current ? 'current' : 'after']: true
+      key: index, done: isNormal,
+      [index === current ? 'current' : index < current ? 'before' : 'after']: true
     }));
     const prevSlideProps = slidesProps[prev];
     const currentSlideProps = slidesProps[current];
-    currentSlideProps.current = prevSlideProps.prev = true;
+    prevSlideProps.prev = true;
 
-    if (prev !== current && !NORMAL) {
+    // compute transform style for current and prev Slide
+    if (prev !== current && !isNormal) {
       let prevFactor = 0;
       let currentFactor = current > prev ? 1 : -1;
-      if (CANCELING && DOWN) {
+      if (isCanceling && isDowning) {
         currentFactor = 0;
         prevFactor = 1;
-      } else if (CANCELING && UP) {
+      } else if (isCanceling && isUping) {
         currentFactor = 0;
         prevFactor = -1;
       }
       if (loop) {
-        if (SWIPING && DOWN) {
+        if (isSwiping && isDowning) {
           currentFactor = 1;
-        } else if (SWIPING && UP) {
+        } else if (isSwiping && isUping) {
           currentFactor = -1;
-        } else if (FORWARDING && DOWN) {
+        } else if (isForwarding && isDowning) {
           currentFactor = 1;
-        } else if (FORWARDING && UP) {
+        } else if (isForwarding && isUping) {
           currentFactor = -1;
         }
       }
       prevSlideProps.style = this.genSlideStyle(prevFactor);
       currentSlideProps.style = this.genSlideStyle(currentFactor);
     }
+
     currentSlideProps.ref = CURRENT_SLIDE_REF;
     return slidesProps.map((props, index) => React.cloneElement(slides[index], props));
   }
@@ -317,8 +336,7 @@ class Deck extends Component {
     const { children, current, vertical, horizontal, loop, swipe, wheel, ...props } = this.props;
     if (wheel) {
       props.onWheel = this.handleWheel;
-    }
-    if (swipe) {
+    } else if (swipe) {
       props.onTouchStart = this.handleTouchStart;
       props.onTouchMove = this.handleTouchMove;
       props.onTouchEnd = this.handleTouchEnd;

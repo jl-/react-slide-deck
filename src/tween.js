@@ -18,51 +18,34 @@ const STATUS = {
 class Tween extends FlatEvent {
   constructor(from, easing, duration) {
     super();
-    this.reset(from)
-    .ease(easing)
-    .duration(duration);
+    this.reset(from).ease(easing).duration(duration);
+    this.iterate = ::this.iterate;
   }
   reset(from) {
     this.stop();
     this.from(from);
-    this._curr = this._from; // no need a deep clone
+    this._curr = this._from;
     this._lasted = 0;
+    this._start = this._latest = 0;
     this._status = STATUS.INIT;
     return this;
   }
-  from (props) {
-    this._from = props || this._from;
+  from(_from) {
+    this._origin_from = this._from = _from;
     return this;
   }
-  to(props) {
-    this._to = props || this._to;
-    return this;
-  }
-  ease(fn = ease.outQuint) {
-    fn = typeof fn === 'function' ? fn : ease[fn];
-    if (!fn) throw new TypeError('invalid easing function');
-    this._ease = fn;
+  to(_to) {
+    this._origin_to = this._to = _to;
     return this;
   }
   duration(ms = 1600) {
     this._duration = ms;
     return this;
   }
-  step() {
-    let progress = this._lasted / this._duration;
-    if (progress >= 1) {
-      this._status = STATUS.DONE;
-      this._curr = this._to;
-      this.emit('updating', this._curr);
-      this.emit('done', this._curr);
-    } else {
-      let from = this._from, to = this._to, curr = this._curr = {};
-      let factor = this._ease(progress);
-      for (let prop in from) {
-        curr[prop] = from[prop] + (to[prop] - from[prop]) * factor;
-      }
-      this.emit('updating', curr);
-    }
+  ease(fn = ease.outQuint) {
+    fn = typeof fn === 'function' ? fn : ease[fn];
+    if (!fn) throw new TypeError('invalid easing function');
+    this._ease = fn;
     return this;
   }
   stop() {
@@ -80,15 +63,26 @@ class Tween extends FlatEvent {
     return this;
   }
   iterate() {
-    let lasted = Date.now() - this._latest + this._lasted;
-    if (lasted >= this._duration) {
-      this._lasted = this._duration;
+    const now = Date.now();
+    const lasted = now - this._latest + this._lasted;
+    const progress = lasted / this._duration;
+    this._latest = now;
+    this._lasted = lasted;
+    if (progress >= 1) {
+      this._status = STATUS.DONE;
+      this._curr = this._to;
+      this.emit('updating', this._curr);
+      this.emit('done', this._curr);
     } else {
-      this._lasted = lasted;
-      this._latest = Date.now();
-      this._raf = raf(::this.iterate);
+      const from = this._from, to = this._to, curr = this._curr = {};
+      const factor = this._ease(progress);
+      for (let prop in from) {
+        curr[prop] = from[prop] + (to[prop] - from[prop]) * factor;
+      }
+      this.emit('updating', curr);
+      this._raf = raf(this.iterate);
     }
-    return this.step();
+    return this;
   }
   resume(p) {
     if (this._status === STATUS.RUNNING) return;
@@ -96,20 +90,29 @@ class Tween extends FlatEvent {
 
     this._status = STATUS.RUNNING;
     this._latest = Date.now();
-    this._raf = raf(::this.iterate);
+    this._raf = raf(this.iterate);
     this.emit('resumed');
     return this;
   }
   start() {
     if (this._status === STATUS.RUNNING) return;
 
-    this._status = STATUS.RUNNING;
-    this._latest = Date.now();
-    this._raf = raf(::this.iterate);
+    this._start = Date.now();
+    this._latest = this._start;
 
-    this._start = this._latest;
+    this._status = STATUS.RUNNING;
+    this._raf = raf(this.iterate);
     this.emit('started');
     return this;
+  }
+  back() {
+    this.stop();
+    const to = this._to === this._origin_to ? this._origin_from : this._origin_to;
+    this._from = this._curr;
+    this._to = to;
+    this._lasted = 0;
+    this._status = STATUS.INIT;
+    this.start();
   }
 }
 Tween.ease = ease;

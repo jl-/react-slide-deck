@@ -3,25 +3,27 @@ class FlatEvent {
     this.$events = {};
   }
   on(event, fn) {
-    let listeners = this.$events[event] || (this.$events[event] = []);
+    const listeners = this.$events[event] || (this.$events[event] = []);
     listeners.push(fn);
     return this;
   }
-  off (...params) {
-    let event = params[0];
-    if (params.length === 0) {
+  off (event, fn) {
+    if (event === undefined) {
       this.$events = {};
-    } else if (params.length === 1) {
+    } else if (fn === undefined) {
       delete this.$events[event];
     } else {
-      let listeners = this.$events[event] || (this.$events[event] = []);
-      let index = listeners.indexOf(params[1]);
-      index !== -1 && listeners.splice(index, 1);
+      const listeners = this.$events[event];
+      if (Array.isArray(listeners)) {
+        const index = listeners.indexOf(fn);
+        (index !== -1) && listeners.splice(index, 1);
+      }
     }
     return this;
   }
   emit(event, ...params) {
-    let listeners = this.$events[event] || (this.$events[event] = []);
+    const listeners = this.$events[event];
+    if (!Array.isArray(listeners)) return;
     listeners.forEach(listener => listener.apply(this, params));
     return this;
   }
