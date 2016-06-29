@@ -32,14 +32,12 @@ class Demo extends Component {
   }
   horizontal() {
     this.setState({
-      horizontal: true,
-      vertical: false
+      horizontal: true
     });
   }
   vertical() {
     this.setState({
-      horizontal: false,
-      vertical: true
+      horizontal: false
     });
   }
   swipe() {
@@ -85,7 +83,6 @@ class Demo extends Component {
           horizontal={this.state.horizontal}
           swipe={this.state.swipe}
           loop={this.state.loop}
-          vertical={this.state.vertical}
           onSwitching={this.onSwitching}
           onSwitchDone={this.onSwitchDone}
           dura={1000}
@@ -107,7 +104,7 @@ class Demo extends Component {
           </div>
           <div>
             <button className={`btn btn-${this.state.horizontal ? 'primary' : 'default'}`} onClick={this.horizontal}>Horizontal</button>
-            <button className={`btn btn-${this.state.vertical ? 'primary' : 'default'}`} onClick={this.vertical}>Vertical</button>
+            <button className={`btn btn-${this.state.horizontal ? 'default' : 'primary'}`} onClick={this.vertical}>Vertical</button>
             <button className={`btn btn-${this.state.swipe ? 'primary' : 'default'}`} onClick={this.swipe}>can swipe?</button>
             <button className={`btn btn-${this.state.wheel ? 'primary' : 'default'}`} onClick={this.wheel}>wheel control?</button>
             <button className={`btn btn-${this.state.loop ? 'primary' : 'default'}`} onClick={this.loop}>loop?</button>
