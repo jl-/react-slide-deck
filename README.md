@@ -98,7 +98,7 @@ class Demo extends Component {
 ```js
 <Deck
   current // current slide index
-  horizontal|vertical // direction for the slides
+  horizontal // boolean, direction for the slides. `vertical` is removed
   wheel // can be control by wheel or not
   swipe // can swipe or not for touch devices
   animate // boolean, should apply animation for indicator click switch or not, see demo link

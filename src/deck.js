@@ -1,6 +1,6 @@
 /**
  * <Deck
- *    vertical|horizontal
+ *    horizontal={true|false}
  *    loop
  *    swipe
  *    wheel
@@ -202,7 +202,7 @@ class Deck extends Component {
     if (!(status & STATUS.SWIPING || status & STATUS.SWIPE_STARTED)) return;
 
     let { prev, current, oriX, oriY, width, height, distance = 0 } = this.state;
-    const { horizontal, vertical } = this.props;
+    const { horizontal } = this.props;
     const slidesCount = Children.count(this.props.children);
     const distanceDimen = horizontal ? width : height;
 
@@ -216,9 +216,9 @@ class Deck extends Component {
     // swipe direction detection, if not corresponds with this.props;
     // or if current slide can swipe;
     // then return false to cancel this swipe
-    let xDiff = Math.abs(x - oriX);
-    let yDiff = Math.abs(y - oriY);
-    const swipeDirectionOk = (xDiff >= SWIPE_MIN_DISTANCE || yDiff >= SWIPE_MIN_DISTANCE) && (xDiff >= yDiff ? horizontal : vertical);
+    const xDiff = Math.abs(x - oriX);
+    const yDiff = Math.abs(y - oriY);
+    const swipeDirectionOk = (xDiff >= SWIPE_MIN_DISTANCE || yDiff >= SWIPE_MIN_DISTANCE) && (xDiff >= yDiff ? horizontal : !horizontal);
     if (!swipeDirectionOk) return false;
     if (this.isCurrentSlideScrolling({ delta: (gear > 0 ? -1 : 1) * (horizontal ? yDiff: xDiff), horizontal })) return false;
 
@@ -244,14 +244,14 @@ class Deck extends Component {
     this.onSwitching({ distance, factor: Math.abs(distance) / (horizontal ? width : height) });
   }
   handleSwipeEnd({ x, y }) {
-    let { horizontal, vertical, factor = SWIPE_FACTOR, speed = FORWARD_SPEED } = this.props;
+    const { horizontal, factor = SWIPE_FACTOR, speed = FORWARD_SPEED } = this.props;
     let { prev, current, width, height, status, distance = 0, gear = 0 } = this.state;
     gear = Math.floor(gear);
 
     if (distance == 0) return;
     if (status & STATUS.SWIPE_STARTED) return this.resumeTran();
 
-    let shouldForward = distance * gear >= 0 && (Math.abs(distance) / (horizontal ? width : height) >= factor || Math.abs(gear) >= speed);
+    const shouldForward = distance * gear >= 0 && (Math.abs(distance) / (horizontal ? width : height) >= factor || Math.abs(gear) >= speed);
 
     if (!shouldForward) [current, prev] = [prev, current];
     status = STATUS.SWIPED | (shouldForward ? STATUS.FORWARDING : STATUS.CANCELING) | (distance > 0 ? STATUS.UP : STATUS.DOWN);
@@ -282,16 +282,16 @@ class Deck extends Component {
   }
 
   genSlideStyle(factor) {
-    const { horizontal, vertical, loop, swipe } = this.props;
+    const { horizontal, loop, swipe } = this.props;
     const { prev, current, status, distance, width, height } = this.state;
     const dx = horizontal ? distance + factor * width : 0;
-    const dy = vertical ? distance + factor * height : 0;
+    const dy = !horizontal ? distance + factor * height : 0;
     const transform = `translate3d(${dx}px, ${dy}px, 0)`;
     return { transform, WebkitTransform: transform };
   }
 
   renderSlides() {
-    const { children, horizontal, vertical, loop } = this.props;
+    const { children, horizontal, loop } = this.props;
     const { prev, current, status } = this.state;
     // const slides = Children.toArray(children);
     const slides = Array.isArray(children) ? children :  [children];
@@ -347,7 +347,7 @@ class Deck extends Component {
   }
 
   render() {
-    const { children, current, vertical, horizontal, loop, swipe, wheel, ...props } = this.props;
+    const { children, current, horizontal, loop, swipe, wheel, ...props } = this.props;
     if (wheel) {
       props.onWheel = this.handleWheel;
     } else if (swipe) {
@@ -358,7 +358,7 @@ class Deck extends Component {
     props.onScroll = this.handleScroll;
     props.className = cx({
       'deck--horizontal': horizontal,
-      'deck--vertical': vertical
+      'deck--vertical': !horizontal
     }, 'deck', props.className);
     return (
       <div {...props}>
