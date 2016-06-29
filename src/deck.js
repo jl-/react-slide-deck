@@ -27,12 +27,17 @@ import cx from 'classnames';
 import raf from 'raf';
 import Slide from './slide';
 import './style.scss';
+import throttle from 'utils/throttle';
 
 const SWIPE_DURA = 1000; // default transition duration
 const SWIPE_MIN_DISTANCE = 0;
 const SWIPE_FACTOR = 0.22;
 const FORWARD_SPEED = 6;
 const CURRENT_SLIDE_REF = Symbol('current slide');
+
+// really hacky to disable wheel event during scrolling
+const WHEELABLE_AFTER_SCROLL_MS = 100;
+const SCROLL_THROTTLE_MS = 100;
 
 const STATUS = {
   NORMAL: 0,
@@ -57,6 +62,7 @@ class Deck extends Component {
     this.handleTouchEnd = ::this.handleTouchEnd;
     this.handleWheel = ::this.handleWheel;
     this.calcDimension = ::this.calcDimension;
+    this.handleScroll = throttle(::this.handleScroll, SCROLL_THROTTLE_MS);
 
     this.tween = new Tween();
     this.tween.ease(easing).duration(dura)
@@ -154,10 +160,15 @@ class Deck extends Component {
     return false;
   }
   handleWheel(e) {
-    const delta = e.deltaY;
+    const { children: slides, loop, horizontal } = this.props;
+    const delta = horizontal ? e.deltaX : e.deltaY;
     const { status: prevStatus, prevWheelDelta = 1 } = this.state;
     const status = STATUS.WHEELING | STATUS.FORWARDING | (delta > 0 ? STATUS.DOWN : STATUS.UP);
     (Math.abs(delta) > 0) && this.setState({ prevWheelDelta: delta });
+
+    if (Date.now() - this.latestScroll <= WHEELABLE_AFTER_SCROLL_MS) {
+      return;
+    }
 
     if ((prevStatus & STATUS.WHEELING) && delta * prevWheelDelta < 0) {
       this.setState({
@@ -170,9 +181,8 @@ class Deck extends Component {
     }
     if (Math.abs(delta) / Math.abs(prevWheelDelta) <= 2) return;
 
-    if (prevStatus !== STATUS.NORMAL || delta === 0 || this.isCurrentSlideScrolling({ delta })) return;
+    if (prevStatus !== STATUS.NORMAL || delta === 0 || this.isCurrentSlideScrolling({ delta, horizontal })) return;
 
-    const { children: slides, loop, horizontal } = this.props;
     const slidesCount = Children.count(slides);
     const prev = this.state.current;
     let current = prev + (delta > 0 ? 1 : -1);
@@ -332,6 +342,10 @@ class Deck extends Component {
     return slidesProps.map((props, index) => React.cloneElement(slides[index], props));
   }
 
+  handleScroll() {
+    this.latestScroll = Date.now();
+  }
+
   render() {
     const { children, current, vertical, horizontal, loop, swipe, wheel, ...props } = this.props;
     if (wheel) {
@@ -341,6 +355,7 @@ class Deck extends Component {
       props.onTouchMove = this.handleTouchMove;
       props.onTouchEnd = this.handleTouchEnd;
     }
+    props.onScroll = this.handleScroll;
     props.className = cx({
       'deck--horizontal': horizontal,
       'deck--vertical': vertical
