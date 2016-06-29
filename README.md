@@ -10,7 +10,7 @@ with animation hooks. tweening, tween callbacks. works on PC and touch devices
 
 ---
 
-# [Demo](http://output.jsbin.com/hexada)
+# [Demo](http://jl-.github.io/react-slide-deck)
 also open on touch device, see the swipe effect
 
 --
