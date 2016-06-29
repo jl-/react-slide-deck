@@ -118,7 +118,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	__webpack_require__(99);
 	
-	var _throttle = __webpack_require__(102);
+	var _throttle = __webpack_require__(103);
 	
 	var _throttle2 = _interopRequireDefault(_throttle);
 	
@@ -126,7 +126,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	/**
 	 * <Deck
-	 *    vertical|horizontal
+	 *    horizontal={true|false}
 	 *    loop
 	 *    swipe
 	 *    wheel
@@ -422,9 +422,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var height = _state4.height;
 	      var _state4$distance = _state4.distance;
 	      var distance = _state4$distance === undefined ? 0 : _state4$distance;
-	      var _props2 = this.props;
-	      var horizontal = _props2.horizontal;
-	      var vertical = _props2.vertical;
+	      var horizontal = this.props.horizontal;
 	
 	      var slidesCount = _react.Children.count(this.props.children);
 	      var distanceDimen = horizontal ? width : height;
@@ -441,7 +439,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // then return false to cancel this swipe
 	      var xDiff = Math.abs(x - oriX);
 	      var yDiff = Math.abs(y - oriY);
-	      var swipeDirectionOk = (xDiff >= SWIPE_MIN_DISTANCE || yDiff >= SWIPE_MIN_DISTANCE) && (xDiff >= yDiff ? horizontal : vertical);
+	      var swipeDirectionOk = (xDiff >= SWIPE_MIN_DISTANCE || yDiff >= SWIPE_MIN_DISTANCE) && (xDiff >= yDiff ? horizontal : !horizontal);
 	      if (!swipeDirectionOk) return false;
 	      if (this.isCurrentSlideScrolling({ delta: (gear > 0 ? -1 : 1) * (horizontal ? yDiff : xDiff), horizontal: horizontal })) return false;
 	
@@ -471,13 +469,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function handleSwipeEnd(_ref5) {
 	      var x = _ref5.x;
 	      var y = _ref5.y;
-	      var _props3 = this.props;
-	      var horizontal = _props3.horizontal;
-	      var vertical = _props3.vertical;
-	      var _props3$factor = _props3.factor;
-	      var factor = _props3$factor === undefined ? SWIPE_FACTOR : _props3$factor;
-	      var _props3$speed = _props3.speed;
-	      var speed = _props3$speed === undefined ? FORWARD_SPEED : _props3$speed;
+	      var _props2 = this.props;
+	      var horizontal = _props2.horizontal;
+	      var _props2$factor = _props2.factor;
+	      var factor = _props2$factor === undefined ? SWIPE_FACTOR : _props2$factor;
+	      var _props2$speed = _props2.speed;
+	      var speed = _props2$speed === undefined ? FORWARD_SPEED : _props2$speed;
 	      var _state5 = this.state;
 	      var prev = _state5.prev;
 	      var current = _state5.current;
@@ -541,11 +538,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'genSlideStyle',
 	    value: function genSlideStyle(factor) {
-	      var _props4 = this.props;
-	      var horizontal = _props4.horizontal;
-	      var vertical = _props4.vertical;
-	      var loop = _props4.loop;
-	      var swipe = _props4.swipe;
+	      var _props3 = this.props;
+	      var horizontal = _props3.horizontal;
+	      var loop = _props3.loop;
+	      var swipe = _props3.swipe;
 	      var _state6 = this.state;
 	      var prev = _state6.prev;
 	      var current = _state6.current;
@@ -555,18 +551,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var height = _state6.height;
 	
 	      var dx = horizontal ? distance + factor * width : 0;
-	      var dy = vertical ? distance + factor * height : 0;
+	      var dy = !horizontal ? distance + factor * height : 0;
 	      var transform = 'translate3d(' + dx + 'px, ' + dy + 'px, 0)';
 	      return { transform: transform, WebkitTransform: transform };
 	    }
 	  }, {
 	    key: 'renderSlides',
 	    value: function renderSlides() {
-	      var _props5 = this.props;
-	      var children = _props5.children;
-	      var horizontal = _props5.horizontal;
-	      var vertical = _props5.vertical;
-	      var loop = _props5.loop;
+	      var _props4 = this.props;
+	      var children = _props4.children;
+	      var horizontal = _props4.horizontal;
+	      var loop = _props4.loop;
 	      var _state7 = this.state;
 	      var prev = _state7.prev;
 	      var current = _state7.current;
@@ -632,15 +627,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var _props6 = this.props;
-	      var children = _props6.children;
-	      var current = _props6.current;
-	      var vertical = _props6.vertical;
-	      var horizontal = _props6.horizontal;
-	      var loop = _props6.loop;
-	      var swipe = _props6.swipe;
-	      var wheel = _props6.wheel;
-	      var props = (0, _objectWithoutProperties3.default)(_props6, ['children', 'current', 'vertical', 'horizontal', 'loop', 'swipe', 'wheel']);
+	      var _props5 = this.props;
+	      var children = _props5.children;
+	      var current = _props5.current;
+	      var horizontal = _props5.horizontal;
+	      var loop = _props5.loop;
+	      var swipe = _props5.swipe;
+	      var wheel = _props5.wheel;
+	      var props = (0, _objectWithoutProperties3.default)(_props5, ['children', 'current', 'horizontal', 'loop', 'swipe', 'wheel']);
 	
 	      if (wheel) {
 	        props.onWheel = this.handleWheel;
@@ -652,7 +646,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      props.onScroll = this.handleScroll;
 	      props.className = (0, _classnames2.default)({
 	        'deck--horizontal': horizontal,
-	        'deck--vertical': vertical
+	        'deck--vertical': !horizontal
 	      }, 'deck', props.className);
 	      return _react2.default.createElement(
 	        'div',
@@ -3109,10 +3103,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"!!./../node_modules/css-loader/index.js?importLoaders=2!./../node_modules/autoprefixer-loader/index.js?{browsers:[\"last 5 version\"]}!./../node_modules/sass-loader/index.js!./style.scss\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+	var content = __webpack_require__(100);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(101)(content, {});
+	var update = __webpack_require__(102)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -3129,8 +3123,77 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 100 */,
+/* 100 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(101)();
+	// imports
+	
+	
+	// module
+	exports.push([module.id, ".deck {\n  position: relative;\n  width: 100%;\n  height: 100%;\n  overflow: hidden; }\n\n.deck > .slide {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  -webkit-backface-visibility: hidden;\n          backface-visibility: hidden;\n  overflow: hidden; }\n\n.deck > .slide--current {\n  -webkit-transform: translate3d(0, 0, 0);\n          transform: translate3d(0, 0, 0);\n  overflow: auto; }\n\n.deck--horizontal > .slide--before {\n  -webkit-transform: translate3d(-100%, 0, 0);\n          transform: translate3d(-100%, 0, 0); }\n\n.deck--horizontal > .slide--after {\n  -webkit-transform: translate3d(100%, 0, 0);\n          transform: translate3d(100%, 0, 0); }\n\n.deck--vertical > .slide--before {\n  -webkit-transform: translate3d(0, -100%, 0);\n          transform: translate3d(0, -100%, 0); }\n\n.deck--vertical > .slide--after {\n  -webkit-transform: translate3d(0, 100%, 0);\n          transform: translate3d(0, 100%, 0); }\n", ""]);
+	
+	// exports
+
+
+/***/ },
 /* 101 */
+/***/ function(module, exports) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	// css base code, injected by the css-loader
+	module.exports = function() {
+		var list = [];
+	
+		// return the list of modules as css string
+		list.toString = function toString() {
+			var result = [];
+			for(var i = 0; i < this.length; i++) {
+				var item = this[i];
+				if(item[2]) {
+					result.push("@media " + item[2] + "{" + item[1] + "}");
+				} else {
+					result.push(item[1]);
+				}
+			}
+			return result.join("");
+		};
+	
+		// import a list of modules into the list
+		list.i = function(modules, mediaQuery) {
+			if(typeof modules === "string")
+				modules = [[null, modules, ""]];
+			var alreadyImportedModules = {};
+			for(var i = 0; i < this.length; i++) {
+				var id = this[i][0];
+				if(typeof id === "number")
+					alreadyImportedModules[id] = true;
+			}
+			for(i = 0; i < modules.length; i++) {
+				var item = modules[i];
+				// skip already imported module
+				// this implementation is not 100% perfect for weird media query combinations
+				//  when a module is imported multiple times with different media queries.
+				//  I hope this will never occur (Hey this way we have smaller bundles)
+				if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+					if(mediaQuery && !item[2]) {
+						item[2] = mediaQuery;
+					} else if(mediaQuery) {
+						item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+					}
+					list.push(item);
+				}
+			}
+		};
+		return list;
+	};
+
+
+/***/ },
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -3382,7 +3445,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports) {
 
 	"use strict";
