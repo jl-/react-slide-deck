@@ -6,18 +6,16 @@ import webpack from 'webpack';
 import WebpackDevServer from 'webpack-dev-server';
 
 import {
-  build,
-  demo,
-  devServerConf,
-  WEBPACK_HOST,
-  WEBPACK_PORT
+  PATHS, WEBPACK_HOST, WEBPACK_PORT,
+  demo, devServerConf,
+  build, githubPagesConf
 } from './webpack.conf';
 
 gulp.task('clean', cb => del('dist/*', cb));
 
 gulp.task('statics', () => {
   return gulp.src('statics/**/*')
-  .pipe(gulp.dest('dist/statics'));
+    .pipe(gulp.dest('dist/statics'));
 });
 
 gulp.task('watch', () => {
@@ -31,7 +29,7 @@ gulp.task('build', ['clean'], (cb) => {
 });
 
 gulp.task('wp:dev', (cb) => {
-  let webpackDevServer = new WebpackDevServer(webpack(demo), devServerConf);
+  const webpackDevServer = new WebpackDevServer(webpack(demo), devServerConf);
   webpackDevServer.listen(WEBPACK_PORT, WEBPACK_HOST, (err, result) => {
     console.log(err || 'Listening at %s:%s', WEBPACK_HOST, WEBPACK_PORT);
     cb();
@@ -39,5 +37,15 @@ gulp.task('wp:dev', (cb) => {
 });
 
 gulp.task('dev', cb => {
-  run('clean', 'statics', 'watch', 'wp:dev');
+  run('statics', 'watch', 'wp:dev');
+});
+
+gulp.task('wp:ghp', (cb) => {
+  webpack(githubPagesConf, function(err, stats) {
+    cb();
+  });
+});
+
+gulp.task('ghp', cb => {
+  run('build', 'wp:ghp');
 });

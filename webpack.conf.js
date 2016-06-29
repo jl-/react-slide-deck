@@ -2,25 +2,32 @@ import webpack from 'webpack';
 import path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 
-const PATHS = {
+export const WEBPACK_HOST = process.env.HOST || 'localhost'
+export const WEBPACK_PORT = process.env.PORT || 3003;
+export const PATHS = {
   SRC: path.resolve(__dirname, 'src'),
   DEMO: path.resolve(__dirname, 'demo'),
   DIST: path.resolve(__dirname, 'dist'),
   NODE_MODULES: path.resolve(__dirname, 'node_modules'),
   PUBLIC: '/'
 };
-export const WEBPACK_HOST = process.env.HOST || 'localhost'
-export const WEBPACK_PORT = process.env.PORT || 3003;
 
-let AUTOPREFIXER_CONF = [
+const AUTOPREFIXER_CONF = [
   '{browsers:["last 5 version"]}'
 ].join('&');
 
+const SASS_LOADER_CONF = [
+  `includePaths[]=${PATHS.SRC}`
+].join('&');
 
-let resolve = {
-  extensions: ['', '.js', '.jsx']
-}
-let externals = {
+const RESOLVE = {
+  extensions: ['', '.js', '.jsx', '.css', '.scss', '.json'],
+  modulesDirectories: ['node_modules', 'web_modules'],
+  alias: {
+  }
+};
+
+const EXTERNALS = {
   'react': {
     root: 'React',
     commonjs2: 'react',
@@ -34,14 +41,21 @@ let externals = {
     commonjs: 'react-dom',
     amd: 'react-dom',
     umd: 'react-dom'
+  },
+  'react-addons-transition-group': {
+    root: 'ReactTransitionGroup',
+    commonjs2: 'react-addons-transition-group',
+    commonjs: 'react-addons-transition-group',
+    amd: 'react-addons-transition-group',
+    umd: 'react-addons-transition-group'
   }
 };
 
 export const build = {
   entry: {
-    src: './src/deck.js'
+    src: path.resolve(PATHS.SRC, 'deck.js')
   },
-  resolve: resolve,
+  resolve: RESOLVE,
   output: {
     path: PATHS.DIST,
     filename: 'deck.js',
@@ -53,14 +67,19 @@ export const build = {
   module: {
     loaders: [{
       test: /\.jsx?$/,
-      loader: 'babel'
+      loader: 'babel',
+      include: [PATHS.SRC]
     }, {
       test: /\.(css|scss)$/,
-      loader: `style!css?importLoaders=2!autoprefixer?${AUTOPREFIXER_CONF}!sass`
+      loader: `style!css?importLoaders=2!autoprefixer?${AUTOPREFIXER_CONF}!sass`,
+      include: [PATHS.SRC]
+    }, {
+      test: /\.(png|woff|woff2|eot|ttf|svg)(\?t=[0-9]+)?$/,
+      loader: `url?limit=100000000`
     }]
   },
   devtool: 'sourcemap',
-  externals: externals,
+  externals: EXTERNALS,
 };
 
 export const demo = {
@@ -68,10 +87,10 @@ export const demo = {
     demo: [
       'webpack-dev-server/client?http://' + WEBPACK_HOST + ':' + WEBPACK_PORT,
       'webpack/hot/only-dev-server',
-      './demo/index.js'
+      path.resolve(PATHS.DEMO, 'index.js')
     ]
   },
-  resolve: resolve,
+  resolve: RESOLVE,
   output: {
     path: PATHS.DIST,
     filename: 'index.js',
@@ -83,10 +102,14 @@ export const demo = {
     loaders: [{
       test: /\.jsx?$/,
       loaders: ['react-hot', `babel`],
-      include: [PATHS.SRC, PATHS.DEMO]
+      include: [PATHS.SRC, PATHS.DEMO, PATHS.DIST]
     }, {
       test: /\.(css|scss)$/,
-      loader: `style!css?importLoaders=2!autoprefixer?${AUTOPREFIXER_CONF}!sass`
+      loader: `style!css?importLoaders=2!autoprefixer?${AUTOPREFIXER_CONF}!sass`,
+      include: [PATHS.SRC, PATHS.DEMO]
+    }, {
+      test: /\.(png|woff|woff2|eot|ttf|svg)(\?t=[0-9]+)?$/,
+      loader: `url?limit=100000000`,
     }]
   },
   plugins: [
@@ -94,13 +117,12 @@ export const demo = {
     new HtmlWebpackPlugin({
       inject: 'body',
       hash: true,
-      template: './demo/index.html',
+      template: path.resolve(PATHS.DEMO, 'index.html'),
       title: 'Demo',
       filename: 'index.html'
     })
   ]
 }
-
 
 export const devServerConf = {
   contentBase: PATHS.DIST,
@@ -111,3 +133,42 @@ export const devServerConf = {
     colors: true
   }
 };
+
+export const githubPagesConf = {
+  entry: {
+    ghpages: [
+      path.resolve(PATHS.DEMO, 'index.js')
+    ]
+  },
+  resolve: RESOLVE,
+  output: {
+    path: __dirname,
+    filename: 'index.js',
+    publicPath: './',
+    sourceMapFilename: 'index.map.json',
+    libraryTarget: 'umd'
+  },
+  module: {
+    loaders: [{
+      test: /\.jsx?$/,
+      loaders: ['babel'],
+      include: [PATHS.SRC, PATHS.DEMO, PATHS.DIST]
+    }, {
+      test: /\.(css|scss)$/,
+      loader: `style!css?importLoaders=1!sass`
+    }, {
+      test: /\.(png|woff|woff2|eot|ttf|svg)(\?t=[0-9]+)?$/,
+      loader: `url?limit=100000000`,
+    }]
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      inject: 'body',
+      hash: false,
+      template: path.resolve(PATHS.DEMO, 'index.html'),
+      title: 'Demo',
+      filename: 'index.html'
+    })
+  ]
+};
+

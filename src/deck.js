@@ -23,18 +23,16 @@
 import React, { Component, Children } from 'react';
 import ReactDOM from 'react-dom';
 import Tween from './tween';
-import cns from 'classnames';
+import cx from 'classnames';
 import raf from 'raf';
-
 import Slide from './slide';
-
-import styles from './style.scss';
+import './style.scss';
 
 const SWIPE_DURA = 1000; // default transition duration
 const SWIPE_MIN_DISTANCE = 0;
 const SWIPE_FACTOR = 0.22;
 const FORWARD_SPEED = 6;
-const CURRENT_SLIDE_REF = 'CURRENT_SLIDE';
+const CURRENT_SLIDE_REF = Symbol('current slide');
 
 const STATUS = {
   NORMAL: 0,
@@ -51,18 +49,24 @@ const STATUS = {
 class Deck extends Component {
   constructor(props, context) {
     super(props, context);
-    let { current } = props;
+    const { current, easing, dura = SWIPE_DURA } = props;
     this.state = { current, prev: this.normalizeIndex(current + 1), status: STATUS.NORMAL };
+
+    this.handleTouchStart = ::this.handleTouchStart;
+    this.handleTouchMove = ::this.handleTouchMove;
+    this.handleTouchEnd = ::this.handleTouchEnd;
+    this.handleWheel = ::this.handleWheel;
+    this.calcDimension = ::this.calcDimension;
+
     this.tween = new Tween();
-    this.tween.ease(props.easing).duration(props.dura || SWIPE_DURA)
-    .on('started', ::this.onSwitchStarted)
-    .on('updating', ::this.onSwitching)
-    .on('stopped', ::this.onSwitchStopped)
-    .on('paused', ::this.onSwitchPaused)
-    .on('done', ::this.onSwitchDone);
+    this.tween.ease(easing).duration(dura)
+      .on('started', ::this.onSwitchStarted)
+      .on('updating', ::this.onSwitching)
+      .on('stopped', ::this.onSwitchStopped)
+      .on('paused', ::this.onSwitchPaused)
+      .on('done', ::this.onSwitchDone);
   }
   componentDidMount() {
-    this.calcDimension = ::this.calcDimension;
     this.calcDimension();
     window.addEventListener('resize', this.calcDimension);
   }
@@ -74,14 +78,15 @@ class Deck extends Component {
     return true;
   }
   componentWillReceiveProps(nextProps) {
-    let status = this.state.status;
+    const { status, current: prev } = this.state;
     if (status & STATUS.SWIPED || status & STATUS.WHEELING) return;
-    let prev = this.state.current;
-    let current = this.normalizeIndex(nextProps.current);
+    const current = this.normalizeIndex(nextProps.current);
     if (prev !== current) {
       if (nextProps.animate !== false) {
-        status = STATUS.FORWARDING | (prev < current ? STATUS.DOWN : STATUS.UP);
-        this.setState({ prev, current, status });
+        this.setState({
+          prev, current,
+          status: STATUS.FORWARDING | (prev < current ? STATUS.DOWN : STATUS.UP)
+        });
         this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (nextProps.horizontal ? this.state.width : this.state.height));
       } else {
         this.setState({ prev, current, status: STATUS.NORMAL });
@@ -90,47 +95,49 @@ class Deck extends Component {
     }
   }
   normalizeIndex(index) {
-    let slidesCount = Children.count(this.props.children);
+    const slidesCount = Children.count(this.props.children);
     return (index + slidesCount) % slidesCount;
   }
   calcDimension() {
-    let dom = ReactDOM.findDOMNode(this);
+    const dom = ReactDOM.findDOMNode(this);
     this.setState({
       width: dom.offsetWidth,
       height: dom.offsetHeight
     });
   }
   onSwitchStarted() {
-    let callback = this.props.onSwitchStarted;
+    const { onSwitchStarted: callback } = this.props;
     callback && raf(() => callback.call(this, this.state));
   }
   onSwitching({ distance, factor }) {
     this.setState({ distance });
-    let callback = this.props.onSwitching;
-    callback && raf(() => callback.call(this, factor || Math.abs(distance) / (this.props.horizontal ? this.state.width : this.state.height), this));
+    const { onSwitching: callback } = this.props;
+    callback && raf(() => {
+      const progress = factor || Math.abs(distance) / (this.props.horizontal ? this.state.width : this.state.height);
+      return callback.call(this, progress, this);
+    });
   }
   onSwitchDone(props) {
     this.setState({ distance: 0, status: STATUS.NORMAL });
-    let callback = this.props.onSwitchDone;
+    const { onSwitchDone: callback } = this.props;
     callback && raf(() => callback.call(this, this.state));
   }
   onSwitchPaused(props) {
-    let callback = this.props.onSwitchPaused;
+    const { onSwitchPaused: callback } = this.props;
     callback && callback.call(this, this.state);
   }
   onSwitchStopped(props) {
-    let callback = this.props.onSwitchStopped;
+    const { onSwitchStopped: callback } = this.props;
     callback && callback.call(this, this.state);
   }
   startTran(from, to) {
     this.tween.reset({ distance: from }).to({ distance: to }).start();
   }
   resumeTran() {
-    let status = this.state.status & (~STATUS.SWIPE_STARTED);
+    const status = this.state.status & (~STATUS.SWIPE_STARTED);
     this.setState({ status });
     this.tween.resume();
   }
-
   isCurrentSlideScrolling({ delta, horizontal = false }) {
     const currentSlideDom = ReactDOM.findDOMNode(this.refs[CURRENT_SLIDE_REF]);
     const { offsetWidth, scrollLeft, scrollWidth, offsetHeight, scrollTop, scrollHeight } = currentSlideDom;
@@ -141,9 +148,7 @@ class Deck extends Component {
 
     return false;
   }
-
   handleWheel(e) {
-
     const delta = e.deltaY;
     let { status, prevWheelDelta = 1 } = this.state;
     Math.abs(delta) > 0 && this.setState({ prevWheelDelta: delta });
@@ -162,7 +167,6 @@ class Deck extends Component {
       this.startTran(0, (status & STATUS.DOWN ? -1 : 1) * (horizontal ? this.state.width : this.state.height));
     }
   }
-
   handleSwipeStart({ x, y }) {
     this.tween.stop();
     this.setState({ oriX: x, oriY: y, status: this.state.status | STATUS.SWIPE_STARTED });
@@ -251,21 +255,20 @@ class Deck extends Component {
     this.handleSwipeCancel();
   }
 
-  setSlideStyle(factor) {
-    let { prev, current, status, distance, width, height } = this.state;
-    let { horizontal, vertical, loop, swipe } = this.props;
-    let style = {},
-      dx = horizontal ? distance + factor * width : 0,
-        dy = vertical ? distance + factor * height : 0;
-        style.WebkitTransform = style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
-        return style;
+  genSlideStyle(factor) {
+    const { horizontal, vertical, loop, swipe } = this.props;
+    const { prev, current, status, distance, width, height } = this.state;
+    const dx = horizontal ? distance + factor * width : 0;
+    const dy = vertical ? distance + factor * height : 0;
+    const transform = `translate3d(${dx}px, ${dy}px, 0)`;
+    return { transform, WebkitTransform: transform };
   }
-
-  updateSlides() {
-    let { children: slides, horizontal, vertical, loop } = this.props;
-    let { prev, current, status } = this.state;
-    let slidesCount = Children.count(slides), lastIndex = slidesCount - 1;
-    !Array.isArray(slides) && (slides = [slides]);
+  renderSlides() {
+    const { children, horizontal, vertical, loop } = this.props;
+    const { prev, current, status } = this.state;
+    const slidesCount = Children.count(slides), lastIndex = slidesCount - 1;
+    // const slides = Children.toArray(children);
+    const slides = Array.isArray(children) ? children :  [children];
 
     const SWIPING = status & STATUS.SWIPING,
       FORWARDING = status & STATUS.FORWARDING,
@@ -274,14 +277,12 @@ class Deck extends Component {
       DOWN = status & STATUS.DOWN,
       NORMAL = status === STATUS.NORMAL;
 
-    let slidesProps = Children.map(slides, (slide, index) => ({
-      done: NORMAL,
-      key: index,
+    const slidesProps = Children.map(slides, (slide, index) => ({
+      key: index, done: NORMAL,
       [index < current ? 'before' : index === current ? 'current' : 'after']: true
     }));
-    let prevSlideProps = slidesProps[prev], currentSlideProps = slidesProps[current];
-
-
+    const prevSlideProps = slidesProps[prev];
+    const currentSlideProps = slidesProps[current];
     currentSlideProps.current = prevSlideProps.prev = true;
 
     if (prev !== current && !NORMAL) {
@@ -305,36 +306,37 @@ class Deck extends Component {
           currentFactor = -1;
         }
       }
-      prevSlideProps.style = this.setSlideStyle(prevFactor);
-      currentSlideProps.style = this.setSlideStyle(currentFactor);
+      prevSlideProps.style = this.genSlideStyle(prevFactor);
+      currentSlideProps.style = this.genSlideStyle(currentFactor);
     }
     currentSlideProps.ref = CURRENT_SLIDE_REF;
     return slidesProps.map((props, index) => React.cloneElement(slides[index], props));
   }
 
   render() {
-    let { children, current, vertical, horizontal, loop, swipe, wheel, className, ...props } = this.props;
+    const { children, current, vertical, horizontal, loop, swipe, wheel, ...props } = this.props;
     if (wheel) {
-      props.onWheel = ::this.handleWheel;
+      props.onWheel = this.handleWheel;
     }
     if (swipe) {
-      props.onTouchStart = ::this.handleTouchStart;
-      props.onTouchMove = ::this.handleTouchMove;
-      props.onTouchEnd = ::this.handleTouchEnd;
+      props.onTouchStart = this.handleTouchStart;
+      props.onTouchMove = this.handleTouchMove;
+      props.onTouchEnd = this.handleTouchEnd;
     }
-    className = cns({
-      [className]: !!className,
+    props.className = cx({
       'deck--horizontal': horizontal,
       'deck--vertical': vertical
-    }, 'deck');
+    }, 'deck', props.className);
     return (
-      <div className={className} {...props}>
-      {this.updateSlides()}
+      <div {...props}>
+        {this.renderSlides()}
       </div>
     );
   }
 }
+
 Deck.STATUS = STATUS;
 Deck.Slide = Slide;
+
 export default Deck;
 

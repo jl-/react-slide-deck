@@ -1,23 +1,138 @@
-html, body, #demo {
+@import '~normalize.css/normalize.css';
+
+html, body, .app, .demo, #demo {
   width: 100%;
   height: 100%;
+}
+* {
+  margin: 0;
+}
+.indicators-wrapper:after {
+  display: table;
+  content: "";
+  clear: both;
+}
+.indicator {
+  border: none;
+  outline: none;
+  background: transparent;
+  float: left;
+  height: 46px;
+  width: 25%;
+}
+.indicator.current {
   color: white;
+  background: rgb(39, 174, 96);
 }
-.primary {
-  background: rgb(56,121,217);
+.indicator-line {
+  position: absolute;
+  left: 0;
+  width: 25%;
+  height: 3px;
+  background: red;
+  z-index: 2;
 }
-.second {
-  background: rgb(108,198,68);
+.deck {
+  height: calc(100% - 46px);
 }
-.third {
-  background: rgb(219,68,55);
+.metas-ctrls {
+  position: absolute;
+  height: 40px;
+  bottom: 100px;
+  left: 0;
+  z-index: 40;
+  font-size: 26px;
 }
-.fourth {
-  background: rgb(125,86,193);
+.switching-progress {
+  transform: translate3d(0,0,0);
+  position: fixed;
+  bottom: 0;
+  -webkit-transform: translate3d(0,0,0);
+  will-change: transform;
 }
-.fifth {
-  background: rgb(248,167,36);
+
+@media screen and (max-width: 600px) {
+  .switching-progress {
+    display: none;
+  }
 }
-.long-content {
+
+.slide--current-entering .entering {
+  transform: translate(0,0);
+}
+.slide--current .entered,
+.slide--current .entering{
+  transform: translate(0,0);
+}
+
+.entering, .entered {
+  color: white;
+  font-size: 26px;
+  transition: transform 1.4s ease;
+  transform: translate(0,160%);
+  width: 200px;
+  height: 200px;
+  text-align: center;
+  background-color: red;
+}
+.enterning {
+  float: left;
+}
+.entered {
+  float: right;
+}
+.over-height {
   height: 2000px;
+  line-height: 2000px;
+  margin: 0;
+}
+
+.bg-primary {
+  color: #fff;
+  background-color: #337ab7;
+}
+.bg-success {
+  background-color: #dff0d8;
+}
+.bg-info {
+  background-color: #d9edf7;
+}
+.bg-warning {
+  background-color: #fcf8e3;
+}
+.btn {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.42857143;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  touch-action: manipulation;
+  cursor: pointer;
+  user-select: none;
+  background-image: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.btn-primary {
+  color: #fff;
+  background-color: #337ab7;
+  border-color: #2e6da4;
+  &:hover {
+    background-color: #286090;
+    border-color: #204d74;
+  }
+}
+.btn-default {
+  color: #333;
+  background-color: #fff;
+  border-color: #ccc;
+  &:hover {
+		color: #333;
+		background-color: #e6e6e6;
+    border-color: #adadad;
+  }
 }

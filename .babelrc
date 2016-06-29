@@ -1,10 +1,4 @@
 {
   "presets": ["es2015", "stage-0", "react"],
-  "plugins": [
-    "syntax-object-rest-spread",
-    "syntax-function-bind",
-    "syntax-decorators",
-    "syntax-class-properties",
-    "transform-object-assign"
-  ]
+  "plugins": ["transform-runtime"]
 }
