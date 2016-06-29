@@ -8,7 +8,7 @@ class Demo extends Component {
     super(props);
     this.state = {
       current: 0,
-      horizontal: true,
+      horizontal: false,
       swipe: true,
       wheel: true,
       animate: true,
