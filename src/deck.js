@@ -27,7 +27,7 @@ import cx from 'classnames';
 import raf from 'raf';
 import Slide from './slide';
 import './style.scss';
-import throttle from 'utils/throttle';
+// import throttle from 'utils/throttle';
 
 const SWIPE_DURA = 1000; // default transition duration
 const SWIPE_MIN_DISTANCE = 0;
@@ -62,7 +62,8 @@ class Deck extends Component {
     this.handleTouchEnd = ::this.handleTouchEnd;
     this.handleWheel = ::this.handleWheel;
     this.calcDimension = ::this.calcDimension;
-    this.handleScroll = throttle(::this.handleScroll, SCROLL_THROTTLE_MS);
+    //this.handleScroll = throttle(::this.handleScroll, SCROLL_THROTTLE_MS);
+    this.handleScroll = ::this.handleScroll;
 
     this.tween = new Tween();
     this.tween.ease(easing).duration(dura)
@@ -162,7 +163,7 @@ class Deck extends Component {
   handleWheel(e) {
     const { children: slides, loop, horizontal } = this.props;
     const delta = horizontal ? e.deltaX : e.deltaY;
-    const { status: prevStatus, prevWheelDelta = 1 } = this.state;
+    const { status: prevStatus, prevWheelDelta } = this.state;
     const status = STATUS.WHEELING | STATUS.FORWARDING | (delta > 0 ? STATUS.DOWN : STATUS.UP);
     (Math.abs(delta) > 0) && this.setState({ prevWheelDelta: delta });
 
@@ -179,7 +180,7 @@ class Deck extends Component {
       this.reverseTran();
       return;
     }
-    if (Math.abs(delta) / Math.abs(prevWheelDelta) <= 2) return;
+    if (prevWheelDelta !== undefined && Math.abs(delta) / Math.abs(prevWheelDelta) <= 2) return;
 
     if (prevStatus !== STATUS.NORMAL || delta === 0 || this.isCurrentSlideScrolling({ delta, horizontal })) return;
 
@@ -350,7 +351,8 @@ class Deck extends Component {
     const { children, current, horizontal, loop, swipe, wheel, ...props } = this.props;
     if (wheel) {
       props.onWheel = this.handleWheel;
-    } else if (swipe) {
+    }
+    if (swipe) {
       props.onTouchStart = this.handleTouchStart;
       props.onTouchMove = this.handleTouchMove;
       props.onTouchEnd = this.handleTouchEnd;
