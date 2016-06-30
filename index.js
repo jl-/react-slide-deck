@@ -95,7 +95,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _deck2 = _interopRequireDefault(_deck);
 
-	__webpack_require__(270);
+	__webpack_require__(269);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -22219,12 +22219,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	__webpack_require__(265);
 
-	var _throttle = __webpack_require__(269);
-
-	var _throttle2 = _interopRequireDefault(_throttle);
-
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	// import throttle from 'utils/throttle';
+
+	var SWIPE_DURA = 1000; // default transition duration
 	/**
 	 * <Deck
 	 *    horizontal={true|false}
@@ -22247,9 +22246,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * </Deck>
 	 *
 	 */
-
-
-	var SWIPE_DURA = 1000; // default transition duration
 	var SWIPE_MIN_DISTANCE = 0;
 	var SWIPE_FACTOR = 0.22;
 	var FORWARD_SPEED = 6;
@@ -22291,7 +22287,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this.handleTouchEnd = _this.handleTouchEnd.bind(_this);
 	    _this.handleWheel = _this.handleWheel.bind(_this);
 	    _this.calcDimension = _this.calcDimension.bind(_this);
-	    _this.handleScroll = (0, _throttle2.default)(_this.handleScroll.bind(_this), SCROLL_THROTTLE_MS);
+	    //this.handleScroll = throttle(::this.handleScroll, SCROLL_THROTTLE_MS);
+	    _this.handleScroll = _this.handleScroll.bind(_this);
 
 	    _this.tween = new _tween2.default();
 	    _this.tween.ease(easing).duration(dura).on('started', _this.onSwitchStarted.bind(_this)).on('updating', _this.onSwitching.bind(_this)).on('stopped', _this.onSwitchStopped.bind(_this)).on('paused', _this.onSwitchPaused.bind(_this)).on('done', _this.onSwitchDone.bind(_this));
@@ -22463,8 +22460,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var delta = horizontal ? e.deltaX : e.deltaY;
 	      var _state3 = this.state;
 	      var prevStatus = _state3.status;
-	      var _state3$prevWheelDelt = _state3.prevWheelDelta;
-	      var prevWheelDelta = _state3$prevWheelDelt === undefined ? 1 : _state3$prevWheelDelt;
+	      var prevWheelDelta = _state3.prevWheelDelta;
 
 	      var status = STATUS.WHEELING | STATUS.FORWARDING | (delta > 0 ? STATUS.DOWN : STATUS.UP);
 	      Math.abs(delta) > 0 && this.setState({ prevWheelDelta: delta });
@@ -22482,7 +22478,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.reverseTran();
 	        return;
 	      }
-	      if (Math.abs(delta) / Math.abs(prevWheelDelta) <= 2) return;
+	      if (prevWheelDelta !== undefined && Math.abs(delta) / Math.abs(prevWheelDelta) <= 2) return;
 
 	      if (prevStatus !== STATUS.NORMAL || delta === 0 || this.isCurrentSlideScrolling({ delta: delta, horizontal: horizontal })) return;
 
@@ -22739,7 +22735,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      if (wheel) {
 	        props.onWheel = this.handleWheel;
-	      } else if (swipe) {
+	      }
+	      if (swipe) {
 	        props.onTouchStart = this.handleTouchStart;
 	        props.onTouchMove = this.handleTouchMove;
 	        props.onTouchEnd = this.handleTouchEnd;
@@ -23882,53 +23879,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 269 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	/**
-	 * window.on('scroll', throttle(fn, 20, 200));
-	 */
-	function throttle(func, delay) {
-	  for (var _len = arguments.length, params = Array(_len > 4 ? _len - 4 : 0), _key = 4; _key < _len; _key++) {
-	    params[_key - 4] = arguments[_key];
-	  }
-
-	  var mustRun = arguments.length <= 2 || arguments[2] === undefined ? delay : arguments[2];
-	  var context = arguments.length <= 3 || arguments[3] === undefined ? null : arguments[3];
-
-	  var tid, firstInvokedAt;
-	  function wrapped() {
-	    for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-	      args[_key2] = arguments[_key2];
-	    }
-
-	    clearTimeout(tid);
-	    var lastInvokedAt = Date.now();
-	    firstInvokedAt = firstInvokedAt || lastInvokedAt;
-
-	    var remaining = mustRun - (lastInvokedAt - firstInvokedAt);
-	    tid = setTimeout(function () {
-	      firstInvokedAt = undefined;
-	      func.apply(context, params.concat(args));
-	    }, remaining > delay ? delay : remaining > 0 ? remaining : 0);
-	  }
-	  return wrapped;
-	}
-
-	exports.default = throttle;
-
-/***/ },
-/* 270 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(271);
+	var content = __webpack_require__(270);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
 	var update = __webpack_require__(268)(content, {});
@@ -23948,12 +23904,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 271 */
+/* 270 */
 /***/ function(module, exports, __webpack_require__) {
 
 	exports = module.exports = __webpack_require__(267)();
 	// imports
-	exports.i(__webpack_require__(272), "");
+	exports.i(__webpack_require__(271), "");
 
 	// module
 	exports.push([module.id, "html, body, .app, .demo, #demo {\n  width: 100%;\n  height: 100%; }\n\n* {\n  margin: 0; }\n\n.indicators-wrapper:after {\n  display: table;\n  content: \"\";\n  clear: both; }\n\n.indicator {\n  border: none;\n  outline: none;\n  background: transparent;\n  float: left;\n  height: 46px;\n  width: 25%; }\n\n.indicator.current {\n  color: white;\n  background: #27ae60; }\n\n.indicator-line {\n  position: absolute;\n  left: 0;\n  width: 25%;\n  height: 3px;\n  background: red;\n  z-index: 2; }\n\n.deck {\n  height: calc(100% - 46px); }\n\n.metas-ctrls {\n  position: absolute;\n  height: 40px;\n  bottom: 100px;\n  left: 0;\n  z-index: 40;\n  font-size: 26px; }\n\n.switching-progress {\n  transform: translate3d(0, 0, 0);\n  position: fixed;\n  bottom: 0;\n  -webkit-transform: translate3d(0, 0, 0);\n  will-change: transform; }\n\n@media screen and (max-width: 600px) {\n  .switching-progress {\n    display: none; } }\n\n.slide--current-entering .entering {\n  transform: translate(0, 0); }\n\n.slide--current .entered,\n.slide--current .entering {\n  transform: translate(0, 0); }\n\n.entering, .entered {\n  color: white;\n  font-size: 26px;\n  transition: transform 1.4s ease;\n  transform: translate(0, 160%);\n  width: 200px;\n  height: 200px;\n  text-align: center;\n  background-color: red; }\n\n.enterning {\n  float: left; }\n\n.entered {\n  float: right; }\n\n.first {\n  color: #fff;\n  background-color: #337ab7; }\n\n.second {\n  background-color: #dff0d8; }\n\n.third {\n  background-color: #d9edf7; }\n\n.fourth {\n  background-color: #fcf8e3; }\n\n.large-content {\n  width: 2000px;\n  height: 2000px;\n  line-height: 2000px;\n  margin: 0; }\n\n.btn {\n  display: inline-block;\n  padding: 6px 12px;\n  margin-bottom: 0;\n  font-size: 14px;\n  font-weight: 400;\n  line-height: 1.42857143;\n  text-align: center;\n  white-space: nowrap;\n  vertical-align: middle;\n  touch-action: manipulation;\n  cursor: pointer;\n  user-select: none;\n  background-image: none;\n  border: 1px solid transparent;\n  border-radius: 4px; }\n\n.btn-primary {\n  color: #fff;\n  background-color: #337ab7;\n  border-color: #2e6da4; }\n  .btn-primary:hover {\n    background-color: #286090;\n    border-color: #204d74; }\n\n.btn-default {\n  color: #333;\n  background-color: #fff;\n  border-color: #ccc; }\n  .btn-default:hover {\n    color: #333;\n    background-color: #e6e6e6;\n    border-color: #adadad; }\n", ""]);
@@ -23962,7 +23918,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 272 */
+/* 271 */
 /***/ function(module, exports, __webpack_require__) {
 
 	exports = module.exports = __webpack_require__(267)();

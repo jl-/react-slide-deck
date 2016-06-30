@@ -118,12 +118,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	__webpack_require__(99);
 	
-	var _throttle = __webpack_require__(103);
-	
-	var _throttle2 = _interopRequireDefault(_throttle);
-	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
+	// import throttle from 'utils/throttle';
+	
+	var SWIPE_DURA = 1000; // default transition duration
 	/**
 	 * <Deck
 	 *    horizontal={true|false}
@@ -146,9 +145,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * </Deck>
 	 *
 	 */
-	
-	
-	var SWIPE_DURA = 1000; // default transition duration
 	var SWIPE_MIN_DISTANCE = 0;
 	var SWIPE_FACTOR = 0.22;
 	var FORWARD_SPEED = 6;
@@ -190,7 +186,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this.handleTouchEnd = _this.handleTouchEnd.bind(_this);
 	    _this.handleWheel = _this.handleWheel.bind(_this);
 	    _this.calcDimension = _this.calcDimension.bind(_this);
-	    _this.handleScroll = (0, _throttle2.default)(_this.handleScroll.bind(_this), SCROLL_THROTTLE_MS);
+	    //this.handleScroll = throttle(::this.handleScroll, SCROLL_THROTTLE_MS);
+	    _this.handleScroll = _this.handleScroll.bind(_this);
 	
 	    _this.tween = new _tween2.default();
 	    _this.tween.ease(easing).duration(dura).on('started', _this.onSwitchStarted.bind(_this)).on('updating', _this.onSwitching.bind(_this)).on('stopped', _this.onSwitchStopped.bind(_this)).on('paused', _this.onSwitchPaused.bind(_this)).on('done', _this.onSwitchDone.bind(_this));
@@ -362,8 +359,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var delta = horizontal ? e.deltaX : e.deltaY;
 	      var _state3 = this.state;
 	      var prevStatus = _state3.status;
-	      var _state3$prevWheelDelt = _state3.prevWheelDelta;
-	      var prevWheelDelta = _state3$prevWheelDelt === undefined ? 1 : _state3$prevWheelDelt;
+	      var prevWheelDelta = _state3.prevWheelDelta;
 	
 	      var status = STATUS.WHEELING | STATUS.FORWARDING | (delta > 0 ? STATUS.DOWN : STATUS.UP);
 	      Math.abs(delta) > 0 && this.setState({ prevWheelDelta: delta });
@@ -381,7 +377,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.reverseTran();
 	        return;
 	      }
-	      if (Math.abs(delta) / Math.abs(prevWheelDelta) <= 2) return;
+	      if (prevWheelDelta !== undefined && Math.abs(delta) / Math.abs(prevWheelDelta) <= 2) return;
 	
 	      if (prevStatus !== STATUS.NORMAL || delta === 0 || this.isCurrentSlideScrolling({ delta: delta, horizontal: horizontal })) return;
 	
@@ -638,7 +634,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      if (wheel) {
 	        props.onWheel = this.handleWheel;
-	      } else if (swipe) {
+	      }
+	      if (swipe) {
 	        props.onTouchStart = this.handleTouchStart;
 	        props.onTouchMove = this.handleTouchMove;
 	        props.onTouchEnd = this.handleTouchEnd;
@@ -3443,47 +3440,6 @@ return /******/ (function(modules) { // webpackBootstrap
 			URL.revokeObjectURL(oldSrc);
 	}
 
-
-/***/ },
-/* 103 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	/**
-	 * window.on('scroll', throttle(fn, 20, 200));
-	 */
-	function throttle(func, delay) {
-	  for (var _len = arguments.length, params = Array(_len > 4 ? _len - 4 : 0), _key = 4; _key < _len; _key++) {
-	    params[_key - 4] = arguments[_key];
-	  }
-	
-	  var mustRun = arguments.length <= 2 || arguments[2] === undefined ? delay : arguments[2];
-	  var context = arguments.length <= 3 || arguments[3] === undefined ? null : arguments[3];
-	
-	  var tid, firstInvokedAt;
-	  function wrapped() {
-	    for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-	      args[_key2] = arguments[_key2];
-	    }
-	
-	    clearTimeout(tid);
-	    var lastInvokedAt = Date.now();
-	    firstInvokedAt = firstInvokedAt || lastInvokedAt;
-	
-	    var remaining = mustRun - (lastInvokedAt - firstInvokedAt);
-	    tid = setTimeout(function () {
-	      firstInvokedAt = undefined;
-	      func.apply(context, params.concat(args));
-	    }, remaining > delay ? delay : remaining > 0 ? remaining : 0);
-	  }
-	  return wrapped;
-	}
-	
-	exports.default = throttle;
 
 /***/ }
 /******/ ])
