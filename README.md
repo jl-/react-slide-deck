@@ -67,7 +67,7 @@ class Demo extends Component {
     console.log(`switch finished, current slide index: ${current}`);
   }
   render() {
-    const slideClassNames = {
+    const slideClasses = {
       current: styles.currentSlide, // will be concat to className for current slide when it finished entering
       entering: styles.currentSlideEntering, // will be concat to className for current slide during its entering
       prev: styles.prevSlide, // ...
@@ -77,17 +77,17 @@ class Demo extends Component {
     };
     return (
       <div>
-        <Deck {...this.state} onSwitching={::this.onSwitching} onSwitchDone={::this.onSwitchDone}>
-          <Deck.Slide className='bg-black' classNames={slideClassNames}>
+        <Deck {...this.state} onSwitching={::this.onSwitching} onSwitchDone={::this.onSwitchDone} slideClasses={slideClasses}>
+          <Deck.Slide className='bg-black'>
           1
           </Deck.Slide>
-          <Deck.Slide className='bg-green' classNames={slideClassNames}>
+          <Deck.Slide className='bg-green'>
           2
           </Deck.Slide>
-          <Deck.Slide className='bg-red' classNames={slideClassNames}>
+          <Deck.Slide className='bg-red'>
           3
           </Deck.Slide>
-          <Deck.Slide className='bg-yellow' classNames={slideClassNames}>
+          <Deck.Slide className='bg-yellow'>
           4
           </Deck.Slide>
         </Deck>
@@ -122,26 +122,18 @@ class Demo extends Component {
   onSwitching // function(progress, deck) /*fired on every tweening transition. `deck` is the component instance of Deck, useful for accessing data like deck.status, deck.state.distance ...*/
   onSwitchDone // function({prev, current}) /*fired when slide transition is finished*/
   onSwitchStarted // function({prev:current, current:next}) /*fired before a tween transition started*/
+  slideClasses // optional, Object, { current, prev, entering, leaving, before, after },
+               // useful css class hook for Slide animation
+            // current: applied to the `className` of current Slide when it entered
+            // entering: applied to the `className` of current Slide if it is entering
+            // prev: applied to the `className` of previous Slide when it left
+            // leaving: applied to the `className` of previous Slide when it is leaving
+            // before: applied to the `className` for Slides whose index < the index of current Slide
+            // after: applied to the `className` for Slides whose index > the index of current Slide
   >
   <Deck.Slide> content </Deck.Slide>
   <Deck.Slide> content2 </Deck.Slide>
 </Deck>
-```
-
-```js
-<Deck.Slide
-  component // optional, defaults to 'div'
-  className // optional,
-  classNames // optional, Object, { current, prev, entering, leaving, before, after }, useful for animation hooks
-               // current: current slide entered
-               // entering: current slide entering
-               // prev: previous slide left
-               // leaving: previous slide leaving,
-               // before: slides whose index < index of current slide
-               // after: slides whose index > index of current slide
-  ...
-
-/>
 ```
 ---
 

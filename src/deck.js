@@ -4,6 +4,7 @@
  *    loop
  *    swipe
  *    wheel
+ *    slideClasses
  *    animate
  *    dura=1400
  *    factor=0.4
@@ -292,7 +293,7 @@ class Deck extends Component {
   }
 
   renderSlides() {
-    const { children, horizontal, loop } = this.props;
+    const { children, horizontal, loop, slideClasses } = this.props;
     const { prev, current, status } = this.state;
     // const slides = Children.toArray(children);
     const slides = Array.isArray(children) ? children :  [children];
@@ -306,7 +307,7 @@ class Deck extends Component {
       isNormal = status === STATUS.NORMAL;
 
     const slidesProps = Children.map(slides, (slide, index) => ({
-      key: index, done: isNormal,
+      key: index, done: isNormal, classes: slideClasses,
       [index === current ? 'current' : index < current ? 'before' : 'after']: true
     }));
     const prevSlideProps = slidesProps[prev];
@@ -348,7 +349,7 @@ class Deck extends Component {
   }
 
   render() {
-    const { children, current, horizontal, loop, swipe, wheel, ...props } = this.props;
+    const { children, current, horizontal, loop, swipe, wheel, slideClasses, ...props } = this.props;
     if (wheel) {
       props.onWheel = this.handleWheel;
     }

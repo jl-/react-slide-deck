@@ -6,7 +6,7 @@ class Slide extends Component {
   render() {
     const {
       component = 'div', current, before, prev, after, done,
-      classNames = {},
+      classes = {},
       ...props
     } = this.props;
     props.className = cx({
@@ -14,13 +14,13 @@ class Slide extends Component {
       [styles.slideBefore]: before,
       [styles.slideAfter]: after,
 
-      // custom classNames
-      [classNames.current]: classNames.current && current && done,
-      [classNames.entering]: classNames.entering && current && !done,
-      [classNames.prev]: classNames.prev && prev && done,
-      [classNames.leaving]: classNames.leaving && prev && !done,
-      [classNames.before]: classNames.before && before,
-      [classNames.after]: classNames.after && after,
+      // custom classes
+      [classes.current]: classes.current && current && done,
+      [classes.entering]: classes.entering && current && !done,
+      [classes.prev]: classes.prev && prev && done,
+      [classes.leaving]: classes.leaving && prev && !done,
+      [classes.before]: classes.before && before,
+      [classes.after]: classes.after && after,
     }, styles.slide, props.className);
     return React.createElement(component, props);
   }
