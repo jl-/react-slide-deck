@@ -53,6 +53,8 @@ const EXTERNALS = {
   }
 };
 
+const CSS_MODULES_CONF = 'modules&localIdentName=[name]__[local]___[hash:base64:5]';
+
 export const build = {
   entry: {
     src: path.resolve(PATHS.SRC, 'deck.js')
@@ -73,7 +75,7 @@ export const build = {
       include: [PATHS.SRC, PATHS.UTILS]
     }, {
       test: /\.(css|scss)$/,
-      loader: `style!css?importLoaders=2!autoprefixer?${AUTOPREFIXER_CONF}!sass`,
+      loader: `style!css?importLoaders=2&${CSS_MODULES_CONF}!autoprefixer?${AUTOPREFIXER_CONF}!sass`,
       include: [PATHS.SRC]
     }, {
       test: /\.(png|woff|woff2|eot|ttf|svg)(\?t=[0-9]+)?$/,
@@ -107,8 +109,12 @@ export const demo = {
       include: [PATHS.SRC, PATHS.DEMO, PATHS.DIST, PATHS.UTILS]
     }, {
       test: /\.(css|scss)$/,
+      loader: `style!css?importLoaders=2&${CSS_MODULES_CONF}!autoprefixer?${AUTOPREFIXER_CONF}!sass`,
+      include: [PATHS.SRC]
+    }, {
+      test: /\.(css|scss)$/,
       loader: `style!css?importLoaders=2!autoprefixer?${AUTOPREFIXER_CONF}!sass`,
-      include: [PATHS.SRC, PATHS.DEMO]
+      include: [PATHS.DEMO]
     }, {
       test: /\.(png|woff|woff2|eot|ttf|svg)(\?t=[0-9]+)?$/,
       loader: `url?limit=100000000`,
@@ -157,7 +163,7 @@ export const githubPagesConf = {
       include: [PATHS.SRC, PATHS.DEMO, PATHS.DIST, PATHS.UTILS]
     }, {
       test: /\.(css|scss)$/,
-      loader: `style!css?importLoaders=1!sass`
+      loader: `style!css?importLoaders=2&${CSS_MODULES_CONF}!autoprefixer?${AUTOPREFIXER_CONF}!sass`
     }, {
       test: /\.(png|woff|woff2|eot|ttf|svg)(\?t=[0-9]+)?$/,
       loader: `url?limit=100000000`,

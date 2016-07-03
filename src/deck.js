@@ -26,7 +26,7 @@ import Tween from './tween';
 import cx from 'classnames';
 import raf from 'raf';
 import Slide from './slide';
-import './style.scss';
+import styles from './style.scss';
 // import throttle from 'utils/throttle';
 
 const SWIPE_DURA = 1000; // default transition duration
@@ -359,9 +359,9 @@ class Deck extends Component {
     }
     props.onScroll = this.handleScroll;
     props.className = cx({
-      'deck--horizontal': horizontal,
-      'deck--vertical': !horizontal
-    }, 'deck', props.className);
+      [styles.horizontalDeck]: horizontal,
+      [styles.verticalDeck] : !horizontal,
+    }, styles.deck, props.className);
     return (
       <div {...props}>
         {this.renderSlides()}
