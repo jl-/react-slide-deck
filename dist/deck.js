@@ -116,7 +116,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _slide2 = _interopRequireDefault(_slide);
 	
-	__webpack_require__(99);
+	var _style = __webpack_require__(99);
+	
+	var _style2 = _interopRequireDefault(_style);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -623,6 +625,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'render',
 	    value: function render() {
+	      var _cx;
+	
 	      var _props5 = this.props;
 	      var children = _props5.children;
 	      var current = _props5.current;
@@ -641,10 +645,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        props.onTouchEnd = this.handleTouchEnd;
 	      }
 	      props.onScroll = this.handleScroll;
-	      props.className = (0, _classnames2.default)({
-	        'deck--horizontal': horizontal,
-	        'deck--vertical': !horizontal
-	      }, 'deck', props.className);
+	      props.className = (0, _classnames2.default)((_cx = {}, (0, _defineProperty3.default)(_cx, _style2.default.horizontalDeck, horizontal), (0, _defineProperty3.default)(_cx, _style2.default.verticalDeck, !horizontal), _cx), _style2.default.deck, props.className);
 	      return _react2.default.createElement(
 	        'div',
 	        props,
@@ -3022,6 +3023,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 	
+	var _defineProperty2 = __webpack_require__(2);
+	
+	var _defineProperty3 = _interopRequireDefault(_defineProperty2);
+	
 	var _objectWithoutProperties2 = __webpack_require__(1);
 	
 	var _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2);
@@ -3054,6 +3059,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
+	var _style = __webpack_require__(99);
+	
+	var _style2 = _interopRequireDefault(_style);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var Slide = function (_Component) {
@@ -3067,6 +3076,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  (0, _createClass3.default)(Slide, [{
 	    key: 'render',
 	    value: function render() {
+	      var _cx;
+	
 	      var _props = this.props;
 	      var _props$component = _props.component;
 	      var component = _props$component === undefined ? 'div' : _props$component;
@@ -3075,16 +3086,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var prev = _props.prev;
 	      var after = _props.after;
 	      var done = _props.done;
-	      var props = (0, _objectWithoutProperties3.default)(_props, ['component', 'current', 'before', 'prev', 'after', 'done']);
+	      var _props$classNames = _props.classNames;
+	      var classNames = _props$classNames === undefined ? {} : _props$classNames;
+	      var props = (0, _objectWithoutProperties3.default)(_props, ['component', 'current', 'before', 'prev', 'after', 'done', 'classNames']);
 	
-	      props.className = (0, _classnames2.default)({
-	        'slide--current': current && done,
-	        'slide--current-entering': current && !done,
-	        'slide--before': before,
-	        'slide--after': after,
-	        'slide--prev': prev && done,
-	        'slide--prev-leaving': prev && !done
-	      }, 'slide', props.className);
+	      props.className = (0, _classnames2.default)((_cx = {}, (0, _defineProperty3.default)(_cx, _style2.default.currentSlide, current && done), (0, _defineProperty3.default)(_cx, _style2.default.slideBefore, before), (0, _defineProperty3.default)(_cx, _style2.default.slideAfter, after), (0, _defineProperty3.default)(_cx, classNames.current, classNames.current && current && done), (0, _defineProperty3.default)(_cx, classNames.entering, classNames.entering && current && !done), (0, _defineProperty3.default)(_cx, classNames.prev, classNames.prev && prev && done), (0, _defineProperty3.default)(_cx, classNames.leaving, classNames.leaving && prev && !done), (0, _defineProperty3.default)(_cx, classNames.before, classNames.before && before), (0, _defineProperty3.default)(_cx, classNames.after, classNames.after && after), _cx), _style2.default.slide, props.className);
 	      return _react2.default.createElement(component, props);
 	    }
 	  }]);
@@ -3109,8 +3115,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	if(false) {
 		// When the styles change, update the <style> tags
 		if(!content.locals) {
-			module.hot.accept("!!./../node_modules/css-loader/index.js?importLoaders=2!./../node_modules/autoprefixer-loader/index.js?{browsers:[\"last 5 version\"]}!./../node_modules/sass-loader/index.js!./style.scss", function() {
-				var newContent = require("!!./../node_modules/css-loader/index.js?importLoaders=2!./../node_modules/autoprefixer-loader/index.js?{browsers:[\"last 5 version\"]}!./../node_modules/sass-loader/index.js!./style.scss");
+			module.hot.accept("!!./../node_modules/css-loader/index.js?importLoaders=2&modules&localIdentName=[name]__[local]___[hash:base64:5]!./../node_modules/autoprefixer-loader/index.js?{browsers:[\"last 5 version\"]}!./../node_modules/sass-loader/index.js!./style.scss", function() {
+				var newContent = require("!!./../node_modules/css-loader/index.js?importLoaders=2&modules&localIdentName=[name]__[local]___[hash:base64:5]!./../node_modules/autoprefixer-loader/index.js?{browsers:[\"last 5 version\"]}!./../node_modules/sass-loader/index.js!./style.scss");
 				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 				update(newContent);
 			});
@@ -3128,10 +3134,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	
 	// module
-	exports.push([module.id, ".deck {\n  position: relative;\n  width: 100%;\n  height: 100%;\n  overflow: hidden; }\n\n.deck > .slide {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  -webkit-backface-visibility: hidden;\n          backface-visibility: hidden;\n  overflow: hidden; }\n\n.deck > .slide--current {\n  -webkit-transform: translate3d(0, 0, 0);\n          transform: translate3d(0, 0, 0);\n  overflow: auto; }\n\n.deck--horizontal > .slide--before {\n  -webkit-transform: translate3d(-100%, 0, 0);\n          transform: translate3d(-100%, 0, 0); }\n\n.deck--horizontal > .slide--after {\n  -webkit-transform: translate3d(100%, 0, 0);\n          transform: translate3d(100%, 0, 0); }\n\n.deck--vertical > .slide--before {\n  -webkit-transform: translate3d(0, -100%, 0);\n          transform: translate3d(0, -100%, 0); }\n\n.deck--vertical > .slide--after {\n  -webkit-transform: translate3d(0, 100%, 0);\n          transform: translate3d(0, 100%, 0); }\n", ""]);
+	exports.push([module.id, ".style__deck___3GxuK {\n  position: relative;\n  overflow: hidden; }\n\n.style__slide___jy-my {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  -webkit-backface-visibility: hidden;\n          backface-visibility: hidden;\n  overflow: hidden; }\n\n.style__currentSlide___1yXCC {\n  -webkit-transform: translate3d(0, 0, 0);\n          transform: translate3d(0, 0, 0);\n  overflow: auto; }\n\n.style__horizontalDeck___2PWmZ > .style__slideBefore___6l7TA {\n  -webkit-transform: translate3d(-100%, 0, 0);\n          transform: translate3d(-100%, 0, 0); }\n\n.style__horizontalDeck___2PWmZ > .style__slideAfter___1dREn {\n  -webkit-transform: translate3d(100%, 0, 0);\n          transform: translate3d(100%, 0, 0); }\n\n.style__verticalDeck___1PjcF > .style__slideBefore___6l7TA {\n  -webkit-transform: translate3d(0, -100%, 0);\n          transform: translate3d(0, -100%, 0); }\n\n.style__verticalDeck___1PjcF > .style__slideAfter___1dREn {\n  -webkit-transform: translate3d(0, 100%, 0);\n          transform: translate3d(0, 100%, 0); }\n", ""]);
 	
 	// exports
-
+	exports.locals = {
+		"deck": "style__deck___3GxuK",
+		"slide": "style__slide___jy-my",
+		"currentSlide": "style__currentSlide___1yXCC",
+		"horizontalDeck": "style__horizontalDeck___2PWmZ",
+		"slideBefore": "style__slideBefore___6l7TA",
+		"slideAfter": "style__slideAfter___1dREn",
+		"verticalDeck": "style__verticalDeck___1PjcF"
+	};
 
 /***/ },
 /* 101 */
