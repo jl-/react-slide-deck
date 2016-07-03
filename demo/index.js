@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import Deck from '../src/deck';
+import Deck from '../dist/deck';
 import './index.scss';
 
 class Demo extends Component {
