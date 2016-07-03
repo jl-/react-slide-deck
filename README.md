@@ -5,7 +5,7 @@ with animation hooks. tweening, tween callbacks. works on PC and touch devices
 
 **###NOTICES:**
 - since 0.1.1, pass `swipe` prop to `Deck` only enable|disable swipe functionality, not including wheel control, which requires a seperated `wheel` prop
-- since 0.2.1, slide classNames for animation hooks are using cssModules, see below
+- since 0.2.2, slide classNames for animation hooks are using cssModules, see below
 
 
 ## `npm i react-slide-deck --save`
