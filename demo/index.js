@@ -67,6 +67,14 @@ class Demo extends Component {
     });
   }
   render() {
+    const slideProps = {
+      classNames: {
+        current: '--current--',
+        entering: '---current entering---',
+        prev: '--prev--',
+        leaving: '--prev leaving--'
+      }
+    };
     return (
       <div className='demo'>
         <div className='indicators-wrapper' onClick={this.change}>
@@ -77,6 +85,7 @@ class Demo extends Component {
         </div>
         <span className='indicator-line' style={{ left: this.state.indicatorLineLeft }}></span>
         <Deck
+          className='deck'
           wheel={this.state.wheel}
           animate={this.state.animate}
           current={this.state.current}
@@ -87,15 +96,15 @@ class Demo extends Component {
           onSwitchDone={this.onSwitchDone}
           dura={1000}
         >
-          <Deck.Slide className='first'>1</Deck.Slide>
-          <Deck.Slide className='second'>
+          <Deck.Slide className='first' {...slideProps}>1</Deck.Slide>
+          <Deck.Slide className='second' {...slideProps}>
             <div className='entering'>current entering animation</div>
             <div className='entered'>current entered animation</div>
           </Deck.Slide>
-          <Deck.Slide className='third'>
+          <Deck.Slide className='third' {...slideProps}>
             <h1 className='large-content'>The `Slide` is scrollable if its content overflow.</h1>
           </Deck.Slide>
-          <Deck.Slide className='fourth'>4</Deck.Slide>
+          <Deck.Slide className='fourth' {...slideProps}>4</Deck.Slide>
         </Deck>
         <div className='metas-ctrls'>
           <div>

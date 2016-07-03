@@ -20,6 +20,11 @@ html, body, .app, .demo, #demo {
   height: 46px;
   width: 25%;
 }
+.deck {
+  width: 100%;
+  height: calc(100% - 46px);
+}
+
 .indicator.current {
   color: white;
   background: rgb(39, 174, 96);

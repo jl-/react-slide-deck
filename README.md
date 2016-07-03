@@ -3,7 +3,9 @@ with animation hooks. tweening, tween callbacks. works on PC and touch devices
 
 ---
 
-** NOTEICE: since 0.1.1, pass `swipe` prop to `Deck` only enable|disable swipe functionality, not including wheel control, which requires a seperated `wheel` prop **
+**###NOTICES:**
+- since 0.1.1, pass `swipe` prop to `Deck` only enable|disable swipe functionality, not including wheel control, which requires a seperated `wheel` prop
+- since 0.2.1, slide classNames for animation hooks are using cssModules, see below
 
 
 ## `npm i react-slide-deck --save`
@@ -13,11 +15,10 @@ with animation hooks. tweening, tween callbacks. works on PC and touch devices
 # [Demo](http://jl-.github.io/react-slide-deck)
 also open on touch device, see the swipe effect
 
---
 
 ---
 ### For development
-```
+```sh
 npm install
 bower install
 gulp dev
@@ -25,7 +26,7 @@ gulp dev
 ```
 
 ## build
-```
+```sh
 gulp build
 ```
 
@@ -38,6 +39,8 @@ gulp build
 import React, { Component } from 'react';
 
 import Deck from 'react-slide-deck';
+
+import styles from './styles'; // your styles, css modules maybe?
 
 
 class Demo extends Component {
@@ -64,19 +67,27 @@ class Demo extends Component {
     console.log(`switch finished, current slide index: ${current}`);
   }
   render() {
+    const slideClassNames = {
+      current: styles.currentSlide, // will be concat to className for current slide when it finished entering
+      entering: styles.currentSlideEntering, // will be concat to className for current slide during its entering
+      prev: styles.prevSlide, // ...
+      leaving: styles.prevSlideLeaving, //...
+      before: styles.before, //
+      after: styles.after //
+    };
     return (
       <div>
         <Deck {...this.state} onSwitching={::this.onSwitching} onSwitchDone={::this.onSwitchDone}>
-          <Deck.Slide className='bg-black'>
+          <Deck.Slide className='bg-black' classNames={slideClassNames}>
           1
           </Deck.Slide>
-          <Deck.Slide className='bg-green'>
+          <Deck.Slide className='bg-green' classNames={slideClassNames}>
           2
           </Deck.Slide>
-          <Deck.Slide className='bg-red'>
+          <Deck.Slide className='bg-red' classNames={slideClassNames}>
           3
           </Deck.Slide>
-          <Deck.Slide className='bg-yellow'>
+          <Deck.Slide className='bg-yellow' classNames={slideClassNames}>
           4
           </Deck.Slide>
         </Deck>
@@ -97,6 +108,7 @@ class Demo extends Component {
 
 ```js
 <Deck
+  className // you may need to set you deck's width, height,...
   current // current slide index
   horizontal // boolean, direction for the slides. `vertical` is removed
   wheel // can be control by wheel or not
@@ -116,27 +128,21 @@ class Demo extends Component {
 </Deck>
 ```
 
----
-#### animation hooks
-`Deck.Slide`
-- `.slide--current` // current slide entered
-- `.slide--current-entering` // current slide entering
-- `.slide--before` // slides before current slide
-- `.slide--after` // slides after current slide
-- `.slide--prev` // the previous slide left
-- `.slide--prev-leaving` // previous slide leaving
+```js
+<Deck.Slide
+  component // optional, defaults to 'div'
+  className // optional,
+  classNames // optional, Object, { current, prev, entering, leaving, before, after }, useful for animation hooks
+               // current: current slide entered
+               // entering: current slide entering
+               // prev: previous slide left
+               // leaving: previous slide leaving,
+               // before: slides whose index < index of current slide
+               // after: slides whose index > index of current slide
+  ...
 
-use these classes hook to do css animations, for example:
-```css
-.item {
-  transition: all 1s ease;
-}
-.slide--current .item {
-  transform: translateX(200px);
-}
-// when switch to the 3rd slide, the `.item` will be animated
+/>
 ```
-
 ---
 
 `easing`:
