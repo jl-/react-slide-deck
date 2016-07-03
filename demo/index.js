@@ -1,10 +1,6 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-<<<<<<< HEAD
-import Deck from '../dist/deck';
-=======
 //import Deck from '../src/deck';
->>>>>>> master
 import './index.scss';
 let Deck;
 if (process.env.NODE_ENV === 'production') {
