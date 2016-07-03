@@ -62,11 +62,11 @@ html, body, .app, .demo, #demo {
   }
 }
 
-.slide--current-entering .entering {
+.slideCurrentEntering .entering {
   transform: translate(0,0);
 }
-.slide--current .entered,
-.slide--current .entering{
+.slideCurrent .entered,
+.slideCurrent .entering{
   transform: translate(0,0);
 }
 

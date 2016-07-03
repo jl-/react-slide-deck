@@ -121,6 +121,12 @@ export const demo = {
     }]
   },
   plugins: [
+    new webpack.DefinePlugin({
+      'process.env': {
+        NODE_ENV: JSON.stringify('development')
+      }
+    }),
+
     new webpack.HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
       inject: 'body',
@@ -175,6 +181,11 @@ export const githubPagesConf = {
     }]
   },
   plugins: [
+    new webpack.DefinePlugin({
+      'process.env': {
+        NODE_ENV: JSON.stringify('production')
+      }
+    }),
     new HtmlWebpackPlugin({
       inject: 'body',
       hash: false,
