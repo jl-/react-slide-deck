@@ -163,7 +163,12 @@ export const githubPagesConf = {
       include: [PATHS.SRC, PATHS.DEMO, PATHS.DIST, PATHS.UTILS]
     }, {
       test: /\.(css|scss)$/,
-      loader: `style!css?importLoaders=2&${CSS_MODULES_CONF}!autoprefixer?${AUTOPREFIXER_CONF}!sass`
+      loader: `style!css?importLoaders=2&${CSS_MODULES_CONF}!autoprefixer?${AUTOPREFIXER_CONF}!sass`,
+      include: [PATHS.SRC]
+    }, {
+      test: /\.(css|scss)$/,
+      loader: `style!css?importLoaders=2!autoprefixer?${AUTOPREFIXER_CONF}!sass`,
+      include: [PATHS.DEMO]
     }, {
       test: /\.(png|woff|woff2|eot|ttf|svg)(\?t=[0-9]+)?$/,
       loader: `url?limit=100000000`,
