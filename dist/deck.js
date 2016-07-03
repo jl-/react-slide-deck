@@ -131,6 +131,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *    loop
 	 *    swipe
 	 *    wheel
+	 *    slideClasses
 	 *    animate
 	 *    dura=1400
 	 *    factor=0.4
@@ -560,6 +561,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var children = _props4.children;
 	      var horizontal = _props4.horizontal;
 	      var loop = _props4.loop;
+	      var slideClasses = _props4.slideClasses;
 	      var _state7 = this.state;
 	      var prev = _state7.prev;
 	      var current = _state7.current;
@@ -579,7 +581,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var slidesProps = _react.Children.map(slides, function (slide, index) {
 	        return (0, _defineProperty3.default)({
-	          key: index, done: isNormal
+	          key: index, done: isNormal, classes: slideClasses
 	        }, index === current ? 'current' : index < current ? 'before' : 'after', true);
 	      });
 	      var prevSlideProps = slidesProps[prev];
@@ -634,7 +636,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var loop = _props5.loop;
 	      var swipe = _props5.swipe;
 	      var wheel = _props5.wheel;
-	      var props = (0, _objectWithoutProperties3.default)(_props5, ['children', 'current', 'horizontal', 'loop', 'swipe', 'wheel']);
+	      var slideClasses = _props5.slideClasses;
+	      var props = (0, _objectWithoutProperties3.default)(_props5, ['children', 'current', 'horizontal', 'loop', 'swipe', 'wheel', 'slideClasses']);
 	
 	      if (wheel) {
 	        props.onWheel = this.handleWheel;
@@ -3086,11 +3089,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var prev = _props.prev;
 	      var after = _props.after;
 	      var done = _props.done;
-	      var _props$classNames = _props.classNames;
-	      var classNames = _props$classNames === undefined ? {} : _props$classNames;
-	      var props = (0, _objectWithoutProperties3.default)(_props, ['component', 'current', 'before', 'prev', 'after', 'done', 'classNames']);
+	      var _props$classes = _props.classes;
+	      var classes = _props$classes === undefined ? {} : _props$classes;
+	      var props = (0, _objectWithoutProperties3.default)(_props, ['component', 'current', 'before', 'prev', 'after', 'done', 'classes']);
 	
-	      props.className = (0, _classnames2.default)((_cx = {}, (0, _defineProperty3.default)(_cx, _style2.default.currentSlide, current && done), (0, _defineProperty3.default)(_cx, _style2.default.slideBefore, before), (0, _defineProperty3.default)(_cx, _style2.default.slideAfter, after), (0, _defineProperty3.default)(_cx, classNames.current, classNames.current && current && done), (0, _defineProperty3.default)(_cx, classNames.entering, classNames.entering && current && !done), (0, _defineProperty3.default)(_cx, classNames.prev, classNames.prev && prev && done), (0, _defineProperty3.default)(_cx, classNames.leaving, classNames.leaving && prev && !done), (0, _defineProperty3.default)(_cx, classNames.before, classNames.before && before), (0, _defineProperty3.default)(_cx, classNames.after, classNames.after && after), _cx), _style2.default.slide, props.className);
+	      props.className = (0, _classnames2.default)((_cx = {}, (0, _defineProperty3.default)(_cx, _style2.default.currentSlide, current && done), (0, _defineProperty3.default)(_cx, _style2.default.slideBefore, before), (0, _defineProperty3.default)(_cx, _style2.default.slideAfter, after), (0, _defineProperty3.default)(_cx, classes.current, classes.current && current && done), (0, _defineProperty3.default)(_cx, classes.entering, classes.entering && current && !done), (0, _defineProperty3.default)(_cx, classes.prev, classes.prev && prev && done), (0, _defineProperty3.default)(_cx, classes.leaving, classes.leaving && prev && !done), (0, _defineProperty3.default)(_cx, classes.before, classes.before && before), (0, _defineProperty3.default)(_cx, classes.after, classes.after && after), _cx), _style2.default.slide, props.className);
 	      return _react2.default.createElement(component, props);
 	    }
 	  }]);

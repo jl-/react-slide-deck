@@ -73,13 +73,11 @@ class Demo extends Component {
     });
   }
   render() {
-    const slideProps = {
-      classNames: {
-        current: 'slideCurrent',
-        entering: 'slideCurrentEntering',
-        prev: 'slidePrev',
-        leaving: 'slidePrevLeaving'
-      }
+    const slideClasses = {
+      current: 'slideCurrent',
+      entering: 'slideCurrentEntering',
+      prev: 'slidePrev',
+      leaving: 'slidePrevLeaving'
     };
     return (
       <div className='demo'>
@@ -100,17 +98,18 @@ class Demo extends Component {
           loop={this.state.loop}
           onSwitching={this.onSwitching}
           onSwitchDone={this.onSwitchDone}
+          slideClasses={slideClasses}
           dura={1000}
         >
-          <Deck.Slide className='first' {...slideProps}>1</Deck.Slide>
-          <Deck.Slide className='second' {...slideProps}>
+          <Deck.Slide className='first'>1</Deck.Slide>
+          <Deck.Slide className='second'>
             <div className='entering'>current entering animation</div>
             <div className='entered'>current entered animation</div>
           </Deck.Slide>
-          <Deck.Slide className='third' {...slideProps}>
+          <Deck.Slide className='third'>
             <h1 className='large-content'>The `Slide` is scrollable if its content overflow.</h1>
           </Deck.Slide>
-          <Deck.Slide className='fourth' {...slideProps}>4</Deck.Slide>
+          <Deck.Slide className='fourth'>4</Deck.Slide>
         </Deck>
         <div className='metas-ctrls'>
           <div>
