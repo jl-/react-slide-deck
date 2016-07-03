@@ -1,7 +1,17 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
+<<<<<<< HEAD
 import Deck from '../dist/deck';
+=======
+//import Deck from '../src/deck';
+>>>>>>> master
 import './index.scss';
+let Deck;
+if (process.env.NODE_ENV === 'production') {
+  Deck = require('../dist/deck').default;
+} else {
+  Deck = require('../src/deck').default;
+}
 
 class Demo extends Component {
   constructor(props) {
@@ -69,10 +79,10 @@ class Demo extends Component {
   render() {
     const slideProps = {
       classNames: {
-        current: '--current--',
-        entering: '---current entering---',
-        prev: '--prev--',
-        leaving: '--prev leaving--'
+        current: 'slideCurrent',
+        entering: 'slideCurrentEntering',
+        prev: 'slidePrev',
+        leaving: 'slidePrevLeaving'
       }
     };
     return (
