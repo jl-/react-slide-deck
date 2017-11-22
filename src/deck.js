@@ -34,7 +34,6 @@ const SWIPE_DURA = 1000; // default transition duration
 const SWIPE_MIN_DISTANCE = 0;
 const SWIPE_FACTOR = 0.22;
 const FORWARD_SPEED = 6;
-const CURRENT_SLIDE_REF = Symbol('current slide');
 
 // really hacky to disable wheel event during scrolling
 const WHEELABLE_AFTER_SCROLL_MS = 100;
@@ -152,7 +151,7 @@ class Deck extends Component {
     this.tween.resume();
   }
   isCurrentSlideScrolling({ delta, horizontal = false }) {
-    const currentSlideDom = ReactDOM.findDOMNode(this.refs[CURRENT_SLIDE_REF]);
+    const currentSlideDom = ReactDOM.findDOMNode(this.currendSlideRef);
     const { offsetWidth, scrollLeft, scrollWidth, offsetHeight, scrollTop, scrollHeight } = currentSlideDom;
     const sizes = horizontal ? [offsetWidth, scrollLeft, scrollWidth] : [offsetHeight, scrollTop, scrollHeight];
 
@@ -340,7 +339,9 @@ class Deck extends Component {
       currentSlideProps.style = this.genSlideStyle(currentFactor);
     }
 
-    currentSlideProps.ref = CURRENT_SLIDE_REF;
+    currentSlideProps.ref = el => {
+      this.currendSlideRef = el;
+    };
     return slidesProps.map((props, index) => React.cloneElement(slides[index], props));
   }
 
